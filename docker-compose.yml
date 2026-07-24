@@ -1,0 +1,67 @@
+version: "3.9"
+
+services:
+  chatbot:
+    build:
+      context: .
+      dockerfile: services/chatbot/Dockerfile
+    container_name: mizan-chatbot
+    ports:
+      - "8000:8000"
+    environment:
+      DB_HOST: mizan-postgres
+      DB_PORT: 5432
+      DB_NAME: mizan_db
+      DB_USER: postgres
+      DB_PASSWORD: postgres123
+      MIZAN_QWEN_LITE_URL: ${MIZAN_QWEN_LITE_URL:-}
+      MIZAN_EMBEDDER_URL: ${MIZAN_EMBEDDER_URL:-}
+      MIZAN_TRANSLATE_URL: ${MIZAN_TRANSLATE_URL:-}
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in your environment or .env file}
+      MAILGUN_API_KEY: ${MAILGUN_API_KEY:?Set MAILGUN_API_KEY in your environment or .env file}
+      MAILGUN_DOMAIN: ${MAILGUN_DOMAIN:?Set MAILGUN_DOMAIN in your environment or .env file}
+      MAILGUN_FROM_EMAIL: ${MAILGUN_FROM_EMAIL:?Set MAILGUN_FROM_EMAIL in your environment or .env file}
+      QDRANT_URL: http://mizan-qdrant:6333
+      KNOW_VAT_ZATCA_SQLITE_PATH: /data/know_vat_n_zatca.db
+      LANGCHAIN_TRACING_V2: ${LANGCHAIN_TRACING_V2:-false}
+      LANGCHAIN_API_KEY: ${LANGCHAIN_API_KEY:-}
+      LANGCHAIN_PROJECT: ${LANGCHAIN_PROJECT:-mizan-ai}
+    volumes:
+      - know_vat_zatca_sqlite:/data
+    depends_on:
+      - postgres
+      - qdrant
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:15
+    container_name: mizan-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres123
+      POSTGRES_DB: mizan_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: mizan-qdrant
+    ports:
+      - "6333:6333"
+      - "6334:6334"
+    volumes:
+      - qdrant_data:/qdrant/storage
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  qdrant_data:
+  # Shared with services/know_vat_n_zatca_offline/Dockerfile's -v mount
+  # (same volume name) -- this is how the always-on gateway container
+  # actually sees what the separate, manually-run offline ingestion
+  # container writes. Not a "SQLite container" (SQLite has no server
+  # process to run) -- just the shared file both sides mount.
+  know_vat_zatca_sqlite:
