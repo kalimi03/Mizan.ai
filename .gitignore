@@ -1,0 +1,17 @@
+# Secrets — never commit real credentials
+.env
+.env.local
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+*.egg-info/
+
+# Know VAT & ZATCA — local SQLite data (test/dev content, not source-controlled)
+agents/know_vat_n_zatca/data/
+
+# OS
+.DS_Store
+Thumbs.db

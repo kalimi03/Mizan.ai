@@ -1,0 +1,11 @@
+[
+  {
+    "path": "raw/sample_vat_code_list.csv",
+    "document_type": "VAT Data Dictionary",
+    "language": "en",
+    "version_label": "current",
+    "is_current": true,
+    "source_site": "zatca.gov.sa",
+    "source_url": "https://zatca.gov.sa/en/E-Invoicing/Introduction/RequiredFields/Pages/default.aspx"
+  }
+]
