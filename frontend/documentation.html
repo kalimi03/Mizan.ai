@@ -1,0 +1,710 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Mizan.ai — Documentation</title>
+<link rel="stylesheet" href="style.css">
+<script src="config.js"></script>
+<script src="common.js"></script>
+</head>
+<body>
+<div class="mz-shell">
+  <a class="mz-back-link" href="app.html">&larr; Back to home</a>
+
+  <!-- Shown once; the choice is remembered afterward (see script at the
+       bottom) so a returning visitor goes straight to their content. -->
+  <div class="mz-doc-card mz-lang-gate" id="lang-gate">
+    <h2 style="color:var(--text);">Choose a language / اختر اللغة</h2>
+    <p style="color:var(--text-muted);">This page explains every Mizan.ai feature in detail. Pick the language you'd like to read it in.</p>
+    <div class="mz-lang-gate-buttons">
+      <button onclick="mzDocShowLang('en')">Continue in English</button>
+      <button onclick="mzDocShowLang('ar')" dir="rtl" lang="ar">المتابعة بالعربية</button>
+    </div>
+  </div>
+
+  <!-- ================================ ENGLISH ================================ -->
+  <div id="content-en" style="display:none;">
+    <div class="mz-doc-card">
+      <span class="mz-lang-switch" onclick="mzDocShowLang('ar')">العربية &rarr;</span>
+      <h2>Documentation</h2>
+      <p>
+        Mizan.ai brings together several tools for VAT and ZATCA compliance work, all behind one
+        account. This page explains what each one is for, how it helps you, and how to use it —
+        from a user's point of view, without the technical detail behind it.
+      </p>
+    </div>
+
+    <!-- 1 -->
+    <div class="mz-doc-card">
+      <h3>1. Ask anything (home page)</h3>
+      <p class="mz-doc-label">Purpose</p>
+      <p>
+        Quick, conversational help right when you land in Mizan.ai — a fast question about how
+        something works, or a general question, without hunting for the right tool first.
+      </p>
+      <p class="mz-doc-label">How it works</p>
+      <p>
+        You type a question in plain language and get a plain-language answer back, the same way
+        you'd message a colleague. Think of it as a knowledgeable front desk, not the authoritative
+        source for tax law — for that, use VAT &amp; ZATCA Guidance below, which always shows the
+        regulation an answer came from.
+      </p>
+      <p class="mz-doc-label">What you'll be asked for</p>
+      <table class="mz-table">
+        <thead><tr><th>Field</th><th>What to enter</th></tr></thead>
+        <tbody><tr><td>Message</td><td>Any question, typed into the box at the bottom of the home page.</td></tr></tbody>
+      </table>
+      <p class="mz-doc-label">How to use</p>
+      <ol>
+        <li>Scroll to the chat box at the bottom of the home page.</li>
+        <li>Type your question.</li>
+        <li>Press Enter or click send.</li>
+        <li>Keep the conversation going — it remembers what you've already said in that visit.</li>
+      </ol>
+      <p class="mz-doc-example"><strong>Example:</strong> "What can Mizan.ai do?" or "How do I convert a Word document to PDF?"</p>
+    </div>
+
+    <!-- 2 -->
+    <div class="mz-doc-card">
+      <h3>2. VAT &amp; ZATCA Guidance</h3>
+      <p class="mz-doc-label">Purpose &amp; why it's worth using</p>
+      <p>
+        Getting a VAT/ZATCA rule wrong — a misread exemption, an outdated rate, a misapplied
+        article — can lead to an incorrect filing, and incorrect filings are exactly what draws
+        ZATCA penalties and audit attention. This exists so you get an answer you can actually
+        verify, not a confident-sounding guess.
+      </p>
+      <p class="mz-doc-label">How it works</p>
+      <p>
+        Behind the question box is an AI engine that searches real ZATCA and VAT regulation
+        documents for the passages relevant to your question, then writes a plain-language answer
+        from what it actually found — and shows you exactly which document(s) it used underneath
+        the answer, so you (or your advisor) can check the source before relying on it.
+      </p>
+      <p class="mz-doc-label">What you'll be asked for</p>
+      <table class="mz-table">
+        <thead><tr><th>Field</th><th>What to enter</th></tr></thead>
+        <tbody><tr><td>Question</td><td>Your VAT/ZATCA question, in plain language (English or Arabic).</td></tr></tbody>
+      </table>
+      <p class="mz-doc-label">How to use</p>
+      <ol>
+        <li>Open "VAT &amp; ZATCA Guidance" from the home page.</li>
+        <li>Type your question.</li>
+        <li>Read the answer, and check the citations shown beneath it if you want to verify the source.</li>
+      </ol>
+      <p class="mz-doc-example"><strong>Example:</strong> ask "What is the standard VAT rate in Saudi Arabia?" and you'll get a plain-language answer with the specific regulation it was pulled from listed below it.</p>
+    </div>
+
+    <!-- 3 -->
+    <div class="mz-doc-card">
+      <h3>3. Document Translator</h3>
+      <p class="mz-doc-label">Purpose &amp; why it's worth using</p>
+      <p>
+        Saudi VAT/ZATCA work constantly crosses between Arabic (the language of regulations and
+        many supplier documents) and English (often the language of head offices, auditors, or
+        software exports) — this closes that gap for a quick passage without needing a separate
+        translation tool.
+      </p>
+      <p class="mz-doc-label">How it works</p>
+      <p>
+        You paste text in either language; it's detected automatically and translated to the
+        other one — no need to say which language you're pasting.
+      </p>
+      <p class="mz-doc-label">What you'll be asked for</p>
+      <table class="mz-table">
+        <thead><tr><th>Field</th><th>What to enter</th></tr></thead>
+        <tbody><tr><td>Text</td><td>The paragraph to translate (up to 2,000 characters), in English or Arabic.</td></tr></tbody>
+      </table>
+      <p class="mz-doc-label">How to use</p>
+      <ol>
+        <li>Open "Document Translator."</li>
+        <li>Paste your text.</li>
+        <li>Click "Translate."</li>
+        <li>Read the translated text and the detected/target language shown above it.</li>
+      </ol>
+      <p class="mz-doc-example"><strong>Example:</strong> paste an Arabic clause from a supplier contract and get an English translation to share with a non-Arabic-speaking colleague. (Translating a whole file, not just pasted text, is on the way.)</p>
+    </div>
+
+    <!-- 4 -->
+    <div class="mz-doc-card">
+      <h3>4. VAT Compliance Center</h3>
+      <p>
+        The main compliance workspace. It has two purpose-built tools for the two different jobs
+        a VAT-registered business actually has to do — checking invoices before you trust them,
+        and turning a period's transactions into a VAT return — plus a way to search your own past
+        filing history in plain language.
+      </p>
+
+      <div class="mz-doc-subcard">
+        <h4>4.1 Check invoices for compliance</h4>
+        <p class="mz-doc-label">Purpose &amp; why it's worth using</p>
+        <p>
+          Reclaiming input VAT on an invoice that's actually invalid (a wrong VAT number, numbers
+          that don't add up) is a real, common way businesses end up with a rejected claim or a
+          ZATCA query later. Checking a whole batch at once, instead of eyeballing each invoice,
+          catches this before it becomes a filing problem — and is far faster than a manual
+          line-by-line review.
+        </p>
+        <p class="mz-doc-label">How it works</p>
+        <p>
+          Every invoice is checked two ways: structurally (a properly-formatted VAT number, the
+          required fields a valid invoice needs) and numerically (does the VAT and total actually
+          equal the line items added up correctly, allowing a small rounding tolerance so trivial
+          differences aren't treated as errors). Invoices that pass both are set aside as clean,
+          nothing further needed. Anything that doesn't gets a plain-language explanation of what's
+          wrong, written by an AI engine — but what gets flagged, and why, is always decided by the
+          underlying checks, never guessed by the AI.
+        </p>
+        <p class="mz-doc-label">What you'll be asked for</p>
+        <table class="mz-table">
+          <thead><tr><th>Field</th><th>What to enter</th></tr></thead>
+          <tbody>
+            <tr><td>Invoice file(s)</td><td>One or more invoices — ZATCA e-invoice XML, or a PDF with the XML embedded. Select many at once to check a whole batch.</td></tr>
+            <tr><td>Tolerance (optional)</td><td>A custom allowed rounding difference in SAR — leave blank to use Mizan's default.</td></tr>
+            <tr><td>Format</td><td>The report file type: XLSX, PDF, or DOCX.</td></tr>
+            <tr><td>Language</td><td>English or Arabic, for the downloaded report.</td></tr>
+          </tbody>
+        </table>
+        <p class="mz-doc-label">How to use</p>
+        <ol>
+          <li>Open VAT Compliance Center → "Check invoices for compliance."</li>
+          <li>Select your invoice file(s).</li>
+          <li>(Optional) set a custom tolerance.</li>
+          <li>Click "Check invoices."</li>
+          <li>Review the results — clean invoices need no action; flagged ones show the specific reason.</li>
+          <li>Choose a format and language, then download the report.</li>
+        </ol>
+        <p class="mz-doc-example"><strong>Example:</strong> upload 25 vendor invoices received during the month. Mizan checks all 25 in one pass and tells you 22 are clean and 3 have a specific issue to look at — instead of you checking each one by hand.</p>
+      </div>
+
+      <div class="mz-doc-subcard">
+        <h4>4.2 Prepare a period VAT return</h4>
+        <p class="mz-doc-label">Purpose &amp; why it's worth using</p>
+        <p>
+          The figures that actually go on a VAT return — Output VAT, Reclaimable Input VAT, Net
+          position — come from correctly aggregating every transaction in the period, correctly
+          separating what's genuinely reclaimable from what regulation blocks (like entertainment
+          expenses) or makes conditional (like vehicle costs), and catching row-level errors even
+          when a register's own printed total happens to look consistent. Getting this wrong means
+          either overstating what you can reclaim — a real compliance risk if ZATCA reviews it —
+          or leaving money on the table by excluding VAT you were entitled to.
+        </p>
+        <p class="mz-doc-label">How it works</p>
+        <p>
+          You upload your sales and purchase records; Mizan reads every sheet/file and makes an
+          informed guess at which is which (and, if a sheet has no obvious tax-rate column, what
+          rate to assume for it) — but always shows you that guess to confirm or correct first,
+          nothing is calculated on an unconfirmed guess. It then recomputes the VAT on each row
+          wherever a rate can be determined, comparing it against what the register itself
+          printed, and works out which purchases are reclaimable: trusting a stated
+          reclaimable/not-reclaimable column in your own data first if you have one, then applying
+          clear regulation-based rules for the unambiguous cases (entertainment is always
+          blocked, for example), and only asking you — via a short "needs your decision" list —
+          about genuinely ambiguous ones, like vehicle-related costs, which regulation treats
+          conditionally. Nothing is ever decided silently on your behalf when the answer is
+          genuinely unclear; an AI engine helps classify and explain, but every judgment call
+          either follows a stated rule or comes back to you.
+        </p>
+        <p class="mz-doc-label">What you'll be asked for</p>
+        <table class="mz-table">
+          <thead><tr><th>Field</th><th>What to enter</th></tr></thead>
+          <tbody>
+            <tr><td>Sales/purchase files</td><td>One or more files — separate sales/purchases files, or one workbook with a sheet for each.</td></tr>
+            <tr><td>Mapping confirmation</td><td>For each sheet/file found: Sales, Purchases, or Ignore — pre-filled with Mizan's best guess.</td></tr>
+            <tr><td>Rate for sheets with no rate column</td><td>Standard 15%, Zero-rated, or Exempt — only asked when a sheet genuinely has no usable rate column; skip it and Mizan assumes Standard 15% and tells you so.</td></tr>
+            <tr><td>Period label</td><td>e.g. "July 2026" — shown on the downloaded report.</td></tr>
+            <tr><td>Business / client name (optional)</td><td>Whose filing this is — pre-filled with a guess from the file itself where possible; fill it in if you want to search for this filing later.</td></tr>
+            <tr><td>Format / Language</td><td>Report file type and language, same as invoice checking.</td></tr>
+          </tbody>
+        </table>
+        <p class="mz-doc-label">How to use</p>
+        <ol>
+          <li>Open VAT Compliance Center → "Prepare a period VAT return."</li>
+          <li>Upload your sales and purchase records.</li>
+          <li>Confirm (or correct) the sales/purchases mapping in the popup, answering any rate questions if asked.</li>
+          <li>Review the results: headline figures at the top, any rows worth double-checking below them, and any purchases needing your decision on reclaimability.</li>
+          <li>Answer any pending decisions — the headline figures update once you do.</li>
+          <li>Fill in the period label and (optionally) business/client name, choose a format and language, and download.</li>
+        </ol>
+        <p class="mz-doc-example"><strong>Example:</strong> upload July's sales and purchase registers. Mizan confirms which sheet is which, finds that a hotel stay was marked reclaimable in error and excludes it automatically with a stated reason, flags one vehicle-lease expense for you to decide on, and gives you a net VAT position — ready to file once you've answered that one question.</p>
+      </div>
+
+      <div class="mz-doc-subcard">
+        <h4>4.3 Ask about past filings</h4>
+        <p class="mz-doc-label">Purpose &amp; why it's worth using</p>
+        <p>Once you've prepared a few returns, asking "what did I file for this client before?" in plain language is faster than digging back through old downloaded files yourself.</p>
+        <p class="mz-doc-label">How it works</p>
+        <p>Searches your own saved filing history for whatever you're asking about — no one else's data is ever visible, and a filing only becomes searchable if you gave it a business/client name when you downloaded that return's report.</p>
+        <p class="mz-doc-label">What you'll be asked for</p>
+        <table class="mz-table">
+          <thead><tr><th>Field</th><th>What to enter</th></tr></thead>
+          <tbody><tr><td>Question</td><td>e.g. "What did I do for this customer last time?"</td></tr></tbody>
+        </table>
+        <p class="mz-doc-label">How to use</p>
+        <ol>
+          <li>From the VAT Compliance Center home, type your question.</li>
+          <li>Click "Ask."</li>
+          <li>Read the answer.</li>
+        </ol>
+        <p class="mz-doc-example"><strong>Example:</strong> ask "What did I do for this client last time?" and get a real answer pulled from your own past filings — not a generic response.</p>
+      </div>
+    </div>
+
+    <!-- 5 -->
+    <div class="mz-doc-card">
+      <h3>5. Document Reconciliation</h3>
+      <p class="mz-doc-label">Purpose &amp; why it's worth using</p>
+      <p>
+        Every business eventually has to answer "does what we recorded match what actually
+        happened?" — comparing your own books against a bank statement or a vendor's statement.
+        Done by hand, this is one of the most tedious, error-prone parts of a monthly close; a
+        missed or duplicated transaction can throw off your whole position. This does the matching
+        for you and only asks for a decision on the genuinely uncertain cases.
+      </p>
+      <p class="mz-doc-label">How it works</p>
+      <p>
+        An AI-assisted matching engine compares your records against the other statement, starting
+        with the clearest signals (exact matches on reference/amount/date) and working down to
+        trickier cases — a probable match, several possible candidates for the same item, a
+        partial/installment payment that's really several transactions summing to one, or an
+        amount that's close but not exact. Anything that isn't a clean, certain match is never
+        decided automatically — it's shown to you with an explanation of what it thinks might be
+        going on (including flagging when a mismatch looks like it could simply be a
+        VAT-inclusive vs. VAT-exclusive recording difference), and only becomes final once you
+        confirm or dismiss it.
+      </p>
+      <p class="mz-doc-label">What you'll be asked for</p>
+      <table class="mz-table">
+        <thead><tr><th>Field</th><th>What to enter</th></tr></thead>
+        <tbody>
+          <tr><td>Our records</td><td>Your own accounting export (e.g. from SAP or Odoo).</td></tr>
+          <tr><td>Their statement</td><td>The other side's document — a bank statement, vendor statement, etc.</td></tr>
+          <tr><td>Date proximity (optional)</td><td>How many days apart two entries can be and still count as a possible match — leave blank for Mizan's default.</td></tr>
+          <tr><td>Amount tolerance (optional)</td><td>How close two amounts need to be to count as a possible match — leave blank for Mizan's default.</td></tr>
+          <tr><td>Review decisions</td><td>For each uncertain item: confirm or dismiss it, with an optional note.</td></tr>
+          <tr><td>Format</td><td>XLSX, PDF, or DOCX for the final report.</td></tr>
+        </tbody>
+      </table>
+      <p class="mz-doc-label">How to use</p>
+      <ol>
+        <li>Open "Document Reconciliation."</li>
+        <li>Upload both files.</li>
+        <li>(Optional) adjust date proximity/amount tolerance.</li>
+        <li>Click "Reconcile."</li>
+        <li>Review what matched automatically, and decide on each item in "Needs review."</li>
+        <li>(Optional) run "Check for more possible groupings" for a second pass on partial/installment payments.</li>
+        <li>Click "Confirm &amp; generate," choose a format, and download the report.</li>
+      </ol>
+      <p class="mz-doc-example"><strong>Example:</strong> reconcile your Odoo sales ledger against the month's bank statement. Mizan matches 180 of 200 transactions on its own, flags 12 for your review (including 3 partial payments it thinks belong together), and produces a report ready to hand to your accountant once you've resolved those 12.</p>
+    </div>
+
+    <!-- 6 -->
+    <div class="mz-doc-card">
+      <h3>6. Convert &amp; Edit Files</h3>
+      <p>
+        General-purpose file tools — not VAT-specific, but useful for getting compliance documents
+        into the shape you need (a signed contract, a merged invoice bundle, a password-protected
+        filing) without leaving Mizan.ai.
+      </p>
+
+      <div class="mz-doc-subcard">
+        <h4>6.1 Convert DOCX/XLSX to PDF</h4>
+        <p class="mz-doc-label">Purpose</p>
+        <p>PDF is usually the format you actually need to send or file — a Word or Excel working document isn't always accepted or appropriate for a final version.</p>
+        <p class="mz-doc-label">What you'll be asked for</p>
+        <table class="mz-table">
+          <thead><tr><th>Field</th><th>What to enter</th></tr></thead>
+          <tbody><tr><td>File</td><td>A .docx or .xlsx file.</td></tr></tbody>
+        </table>
+        <p class="mz-doc-label">How to use</p>
+        <ol>
+          <li>Open "Convert &amp; Edit Files" → "Convert doc to PDF."</li>
+          <li>Choose your file.</li>
+          <li>Click "Convert to PDF" — the converted file downloads automatically.</li>
+        </ol>
+        <p class="mz-doc-example"><strong>Example:</strong> convert a draft compliance memo written in Word into a PDF ready to send or file.</p>
+      </div>
+
+      <div class="mz-doc-subcard">
+        <h4>6.2 Edit PDF</h4>
+        <p class="mz-doc-label">Purpose</p>
+        <p>
+          A toolkit for the common things you need to do to a PDF once you already have one —
+          combining documents, protecting sensitive ones, or getting a signature onto a contract —
+          without separate desktop software. Each tool works the same basic way: open it from the
+          "Edit PDF" menu, provide the file(s) it needs, fill in a couple of options, and download
+          the result.
+        </p>
+        <table class="mz-table">
+          <thead><tr><th>Tool</th><th>What it needs</th><th>Example</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Merge</strong></td><td>2+ PDFs, in the order you choose</td><td>Combine three separate invoice PDFs into one file before emailing a client.</td></tr>
+            <tr><td><strong>Split</strong></td><td>The file, a start page, an end page</td><td>Extract just the signature page from a long contract.</td></tr>
+            <tr><td><strong>Rotate</strong></td><td>The file, which pages ("all" or a list), the angle</td><td>Fix a page that was scanned sideways.</td></tr>
+            <tr><td><strong>Watermark</strong></td><td>The file, the watermark text</td><td>Stamp "DRAFT" across a document before it's finalized.</td></tr>
+            <tr><td><strong>Password-protect</strong></td><td>The file, a password</td><td>Protect a filing before emailing it externally.</td></tr>
+            <tr><td><strong>Compress</strong></td><td>The file</td><td>Shrink a large scanned PDF before uploading it elsewhere.</td></tr>
+            <tr><td><strong>Add signature</strong></td><td>The file, the page number, a photo of your signature, and where to place it (click a live preview of that page — no coordinates to type)</td><td>Sign a contract by clicking the spot on the page, then password-protect it before sending.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 7 -->
+    <div class="mz-doc-card">
+      <h3>7. On the way</h3>
+      <p style="color:var(--text-muted); font-size:13px;">
+        A few things aren't built yet: multi-document synthesis, a voice assistant, translating a
+        whole file (not just pasted text), PDF-to-DOC and PDF-to-XLSX conversion,
+        scanned-document-to-PDF, and a few more PDF editor tools (annotate, add text boxes, fill
+        forms, redact).
+      </p>
+    </div>
+  </div>
+
+  <!-- ================================ ARABIC ================================ -->
+  <div id="content-ar" dir="rtl" lang="ar" style="display:none;">
+    <div class="mz-doc-card">
+      <span class="mz-lang-switch" onclick="mzDocShowLang('en')">English &larr;</span>
+      <h2>دليل استخدام ميزان.ai</h2>
+      <p>
+        يجمع ميزان.ai عدة أدوات لأعمال الامتثال لضريبة القيمة المضافة وزاتكا، ضمن حساب واحد. توضح
+        هذه الصفحة الغرض من كل أداة، وكيف تساعدك، وكيفية استخدامها — من منظور المستخدم، دون الدخول
+        في التفاصيل التقنية خلفها.
+      </p>
+    </div>
+
+    <!-- 1 -->
+    <div class="mz-doc-card">
+      <h3>1. اسأل أي شيء (الصفحة الرئيسية)</h3>
+      <p class="mz-doc-label">الغرض</p>
+      <p>
+        مساعدة سريعة ومباشرة فور دخولك ميزان.ai — سؤال سريع عن كيفية عمل شيء ما، أو سؤال عام،
+        دون البحث أولاً عن الأداة المناسبة.
+      </p>
+      <p class="mz-doc-label">كيف يعمل</p>
+      <p>
+        تكتب سؤالك بلغة طبيعية وتحصل على إجابة بلغة طبيعية، تماماً كما لو كنت تراسل زميلاً. فكّر
+        فيه كواجهة استقبال مطّلعة، وليس المصدر الرسمي للأنظمة الضريبية — لهذا الغرض، استخدم
+        "استفسارات ضريبة القيمة المضافة وزاتكا" أدناه، الذي يعرض دائماً النظام الذي استُخرجت منه
+        الإجابة.
+      </p>
+      <p class="mz-doc-label">ما ستُطلب إدخاله</p>
+      <table class="mz-table">
+        <thead><tr><th>الحقل</th><th>ما تُدخله</th></tr></thead>
+        <tbody><tr><td>الرسالة</td><td>أي سؤال، يُكتب في المربع أسفل الصفحة الرئيسية.</td></tr></tbody>
+      </table>
+      <p class="mz-doc-label">كيفية الاستخدام</p>
+      <ol>
+        <li>انتقل إلى مربع المحادثة أسفل الصفحة الرئيسية.</li>
+        <li>اكتب سؤالك.</li>
+        <li>اضغط Enter أو زر الإرسال.</li>
+        <li>استمر في المحادثة — يتذكر ما قلته سابقاً خلال هذه الزيارة.</li>
+      </ol>
+      <p class="mz-doc-example"><strong>مثال:</strong> "ما الذي يمكن أن يقوم به ميزان.ai؟" أو "كيف أحوّل ملف Word إلى PDF؟"</p>
+    </div>
+
+    <!-- 2 -->
+    <div class="mz-doc-card">
+      <h3>2. استفسارات ضريبة القيمة المضافة وزاتكا</h3>
+      <p class="mz-doc-label">الغرض ولماذا يستحق الاستخدام</p>
+      <p>
+        فهم قاعدة ضريبية أو نظام زاتكا بشكل خاطئ — إعفاء مُفسَّر خطأً، نسبة قديمة، مادة نظامية
+        مُطبَّقة بشكل غير صحيح — قد يؤدي إلى إقرار غير صحيح، والإقرارات غير الصحيحة هي بالضبط ما
+        يستدعي غرامات زاتكا واهتمام التدقيق. تم بناء هذه الأداة لتحصل على إجابة يمكنك التحقق منها
+        فعلياً، لا تخميناً واثقاً بمظهره فقط.
+      </p>
+      <p class="mz-doc-label">كيف يعمل</p>
+      <p>
+        خلف مربع السؤال محرك ذكاء اصطناعي يبحث في مستندات أنظمة زاتكا وضريبة القيمة المضافة
+        الحقيقية عن المقاطع ذات الصلة بسؤالك، ثم يكتب إجابة بلغة واضحة مما وجده فعلياً — ويعرض لك
+        بالضبط أي مستند(ات) استخدمها أسفل الإجابة، حتى تتمكن أنت (أو مستشارك) من التحقق من المصدر
+        قبل الاعتماد عليه.
+      </p>
+      <p class="mz-doc-label">ما ستُطلب إدخاله</p>
+      <table class="mz-table">
+        <thead><tr><th>الحقل</th><th>ما تُدخله</th></tr></thead>
+        <tbody><tr><td>السؤال</td><td>سؤالك المتعلق بضريبة القيمة المضافة/زاتكا، بلغة طبيعية (عربية أو إنجليزية).</td></tr></tbody>
+      </table>
+      <p class="mz-doc-label">كيفية الاستخدام</p>
+      <ol>
+        <li>افتح "استفسارات ضريبة القيمة المضافة وزاتكا" من الصفحة الرئيسية.</li>
+        <li>اكتب سؤالك.</li>
+        <li>اقرأ الإجابة، وتحقق من المراجع المعروضة أسفلها إن أردت التأكد من المصدر.</li>
+      </ol>
+      <p class="mz-doc-example"><strong>مثال:</strong> اسأل "ما هي نسبة ضريبة القيمة المضافة الأساسية في السعودية؟" وستحصل على إجابة بلغة واضحة مع تحديد النظام الذي استُخرجت منه أسفلها.</p>
+    </div>
+
+    <!-- 3 -->
+    <div class="mz-doc-card">
+      <h3>3. مترجم المستندات</h3>
+      <p class="mz-doc-label">الغرض ولماذا يستحق الاستخدام</p>
+      <p>
+        أعمال ضريبة القيمة المضافة وزاتكا في السعودية تنتقل باستمرار بين العربية (لغة الأنظمة
+        وكثير من مستندات الموردين) والإنجليزية (غالباً لغة المكاتب الرئيسية أو المدققين الدوليين
+        أو تصديرات البرمجيات) — تسد هذه الأداة تلك الفجوة لفقرة سريعة دون الحاجة لأداة ترجمة
+        منفصلة.
+      </p>
+      <p class="mz-doc-label">كيف يعمل</p>
+      <p>الصق النص بأي من اللغتين؛ يتم اكتشافها تلقائياً وترجمتها إلى اللغة الأخرى — دون الحاجة لتحديد اللغة التي تلصقها.</p>
+      <p class="mz-doc-label">ما ستُطلب إدخاله</p>
+      <table class="mz-table">
+        <thead><tr><th>الحقل</th><th>ما تُدخله</th></tr></thead>
+        <tbody><tr><td>النص</td><td>الفقرة المراد ترجمتها (حتى 2000 حرف)، بالعربية أو الإنجليزية.</td></tr></tbody>
+      </table>
+      <p class="mz-doc-label">كيفية الاستخدام</p>
+      <ol>
+        <li>افتح "مترجم المستندات".</li>
+        <li>الصق نصك.</li>
+        <li>اضغط "ترجمة".</li>
+        <li>اقرأ النص المترجم واللغة المكتشفة/المستهدفة المعروضة أعلاه.</li>
+      </ol>
+      <p class="mz-doc-example"><strong>مثال:</strong> الصق بنداً من عقد مورد بالعربية واحصل على ترجمة إنجليزية لمشاركتها مع زميل لا يتحدث العربية. (ترجمة ملف كامل، وليس نصاً ملصقاً فقط، قيد التطوير.)</p>
+    </div>
+
+    <!-- 4 -->
+    <div class="mz-doc-card">
+      <h3>4. مركز الامتثال لضريبة القيمة المضافة</h3>
+      <p>
+        مساحة العمل الرئيسية للامتثال. تضم أداتين مخصصتين للمهمتين المختلفتين اللتين تقوم بهما أي
+        شركة مسجّلة في ضريبة القيمة المضافة فعلياً — فحص الفواتير قبل الوثوق بها، وتحويل معاملات
+        فترة كاملة إلى إقرار ضريبي — بالإضافة إلى طريقة للبحث في سجل إقراراتك السابقة بلغة طبيعية.
+      </p>
+
+      <div class="mz-doc-subcard">
+        <h4>4.1 فحص الفواتير للامتثال</h4>
+        <p class="mz-doc-label">الغرض ولماذا يستحق الاستخدام</p>
+        <p>
+          استرداد ضريبة المدخلات على فاتورة غير صحيحة فعلياً (رقم ضريبي خاطئ، أرقام لا تتطابق) هو
+          سبب حقيقي وشائع لانتهاء الشركات برفض مطالبة أو استفسار من زاتكا لاحقاً. فحص دفعة كاملة
+          من الفواتير دفعة واحدة، بدلاً من مراجعة كل فاتورة بالعين، يكتشف هذا قبل أن يتحول إلى
+          مشكلة في الإقرار — وهو أسرع بكثير من المراجعة اليدوية سطراً بسطر.
+        </p>
+        <p class="mz-doc-label">كيف يعمل</p>
+        <p>
+          تُفحص كل فاتورة بطريقتين: هيكلياً (رقم ضريبي بتنسيق صحيح، الحقول المطلوبة لفاتورة صالحة)
+          وحسابياً (هل تساوي الضريبة والإجمالي فعلياً مجموع بنود الفاتورة، مع هامش تقريب بسيط حتى
+          لا تُعامَل الفروقات الطفيفة كأخطاء). الفواتير التي تجتاز الفحصين تُوضع جانباً كسليمة، دون
+          حاجة لأي إجراء إضافي. أي فاتورة لا تجتازهما تحصل على شرح بلغة واضحة لما هو خاطئ، يكتبه
+          محرك ذكاء اصطناعي — لكن ما يتم تعليمه ولماذا يُقرَّر دائماً عبر الفحوصات الأساسية، وليس
+          تخميناً من الذكاء الاصطناعي.
+        </p>
+        <p class="mz-doc-label">ما ستُطلب إدخاله</p>
+        <table class="mz-table">
+          <thead><tr><th>الحقل</th><th>ما تُدخله</th></tr></thead>
+          <tbody>
+            <tr><td>ملف(ات) الفاتورة</td><td>فاتورة واحدة أو أكثر — XML لفاتورة زاتكا الإلكترونية، أو PDF يحتوي على XML مضمّن. اختر عدة فواتير لفحص دفعة كاملة.</td></tr>
+            <tr><td>هامش التطابق (اختياري)</td><td>فرق تقريب مسموح به مخصص بالريال السعودي — اتركه فارغاً لاستخدام القيمة الافتراضية.</td></tr>
+            <tr><td>الصيغة</td><td>نوع ملف التقرير: XLSX أو PDF أو DOCX.</td></tr>
+            <tr><td>اللغة</td><td>العربية أو الإنجليزية، للتقرير الذي سيتم تحميله.</td></tr>
+          </tbody>
+        </table>
+        <p class="mz-doc-label">كيفية الاستخدام</p>
+        <ol>
+          <li>افتح مركز الامتثال لضريبة القيمة المضافة ← "فحص الفواتير للامتثال".</li>
+          <li>اختر ملف(ات) الفاتورة.</li>
+          <li>(اختياري) حدد هامش تطابق مخصص.</li>
+          <li>اضغط "فحص الفواتير".</li>
+          <li>راجع النتائج — الفواتير السليمة لا تحتاج أي إجراء؛ والمُعلَّمة تعرض السبب المحدد.</li>
+          <li>اختر الصيغة واللغة، ثم حمّل التقرير.</li>
+        </ol>
+        <p class="mz-doc-example"><strong>مثال:</strong> ارفع 25 فاتورة مورد استلمتها خلال الشهر. يفحص ميزان.ai الـ25 دفعة واحدة ويخبرك أن 22 منها سليمة و3 لديها مشكلة محددة تستحق المراجعة — بدلاً من فحص كل واحدة يدوياً.</p>
+      </div>
+
+      <div class="mz-doc-subcard">
+        <h4>4.2 إعداد إقرار ضريبي دوري</h4>
+        <p class="mz-doc-label">الغرض ولماذا يستحق الاستخدام</p>
+        <p>
+          الأرقام التي تُدرج فعلياً في الإقرار الضريبي — ضريبة المخرجات، ضريبة المدخلات القابلة
+          للاسترداد، صافي المركز — تأتي من تجميع صحيح لكل معاملة في الفترة، وفصل صحيح لما هو قابل
+          للاسترداد فعلياً عمّا يحظره النظام (مثل مصاريف الضيافة) أو يجعله مشروطاً (مثل تكاليف
+          المركبات)، واكتشاف أخطاء على مستوى الصف حتى عندما يبدو إجمالي السجل المطبوع متسقاً مع
+          نفسه. الخطأ في أي من ذلك يعني إما المبالغة فيما يمكن استرداده — وهو خطر امتثال حقيقي إن
+          راجعته زاتكا — أو خسارة أموال باستبعاد ضريبة كنت مستحقاً لاستردادها فعلياً.
+        </p>
+        <p class="mz-doc-label">كيف يعمل</p>
+        <p>
+          ترفع سجلات مبيعاتك ومشترياتك؛ يقرأ ميزان.ai كل ورقة/ملف ويخمّن بشكل مدروس أيها مبيعات
+          وأيها مشتريات (وإن كانت ورقة ما تفتقر لعمود واضح لفئة الضريبة، ما هي النسبة المفترضة لها)
+          — لكنه يعرض عليك دائماً هذا التخمين لتأكيده أو تصحيحه أولاً، ولا يُحسب شيء بناءً على
+          تخمين غير مؤكد. بعدها يعيد حساب الضريبة على كل صف حيثما أمكن تحديد نسبة، ويقارنها بما هو
+          مطبوع فعلياً في السجل، ويحدد أي المشتريات قابلة للاسترداد: بالثقة أولاً بعمود مذكور في
+          بياناتك الخاصة (قابل/غير قابل للاسترداد) إن وُجد، ثم بتطبيق قواعد واضحة مبنية على النظام
+          للحالات غير الغامضة (الضيافة محظورة دائماً، مثلاً)، ولا يسألك إلا عن الحالات الغامضة
+          فعلياً — عبر قائمة قصيرة "بحاجة لقرارك" — مثل التكاليف المتعلقة بالمركبات، التي يُعاملها
+          النظام بشكل مشروط. لا يُتَّخذ أي قرار بصمت نيابة عنك عندما تكون الإجابة غير واضحة فعلياً؛
+          يساعد محرك الذكاء الاصطناعي في التصنيف والشرح، لكن كل قرار حاسم إما يتبع قاعدة محددة أو
+          يعود إليك.
+        </p>
+        <p class="mz-doc-label">ما ستُطلب إدخاله</p>
+        <table class="mz-table">
+          <thead><tr><th>الحقل</th><th>ما تُدخله</th></tr></thead>
+          <tbody>
+            <tr><td>ملفات المبيعات/المشتريات</td><td>ملف واحد أو أكثر — ملفات منفصلة للمبيعات/المشتريات، أو ملف واحد بورقة لكل منهما.</td></tr>
+            <tr><td>تأكيد التصنيف</td><td>لكل ورقة/ملف: مبيعات، مشتريات، أو تجاهل — معبّأ مسبقاً بأفضل تخمين من ميزان.ai.</td></tr>
+            <tr><td>نسبة الأوراق بلا عمود فئة ضريبية</td><td>أساسية 15%، معدومة النسبة، أو معفاة — تُطلب فقط عندما تفتقر ورقة فعلياً لعمود نسبة قابل للاستخدام؛ تخطَّ السؤال وسيفترض ميزان.ai النسبة الأساسية 15% ويخبرك بذلك.</td></tr>
+            <tr><td>تسمية الفترة</td><td>مثل "يوليو 2026" — تظهر على التقرير الذي سيتم تحميله.</td></tr>
+            <tr><td>اسم النشاط/العميل (اختياري)</td><td>لمن هذا الإقرار — معبّأ مسبقاً بتخمين من الملف نفسه حيثما أمكن؛ املأه إن أردت البحث عن هذا الإقرار لاحقاً.</td></tr>
+            <tr><td>الصيغة / اللغة</td><td>نوع ملف التقرير ولغته، كما في فحص الفواتير.</td></tr>
+          </tbody>
+        </table>
+        <p class="mz-doc-label">كيفية الاستخدام</p>
+        <ol>
+          <li>افتح مركز الامتثال لضريبة القيمة المضافة ← "إعداد إقرار ضريبي دوري".</li>
+          <li>ارفع سجلات المبيعات والمشتريات.</li>
+          <li>أكّد (أو صحّح) تصنيف المبيعات/المشتريات في النافذة المنبثقة، وأجب عن أي أسئلة حول النسبة إن طُلبت.</li>
+          <li>راجع النتائج: الأرقام الرئيسية أعلاه، أي صفوف تستحق مراجعة إضافية أسفلها، وأي مشتريات تحتاج قرارك حول قابليتها للاسترداد.</li>
+          <li>أجب عن أي قرارات معلّقة — تتحدث الأرقام الرئيسية بمجرد إجابتك.</li>
+          <li>أدخل تسمية الفترة و(اختيارياً) اسم النشاط/العميل، اختر الصيغة واللغة، وحمّل.</li>
+        </ol>
+        <p class="mz-doc-example"><strong>مثال:</strong> ارفع سجلات مبيعات ومشتريات شهر يوليو. يؤكد ميزان.ai أي ورقة هي أيها، ويجد أن إقامة فندقية صُنّفت خطأً كقابلة للاسترداد فيستبعدها تلقائياً مع ذكر السبب، ويُعلّم مصروف تأجير مركبة واحد لتقرر بشأنه، ويعطيك صافي مركز ضريبي — جاهزاً للتقديم بمجرد إجابتك على ذلك السؤال الواحد.</p>
+      </div>
+
+      <div class="mz-doc-subcard">
+        <h4>4.3 الاستفسار عن الإقرارات السابقة</h4>
+        <p class="mz-doc-label">الغرض ولماذا يستحق الاستخدام</p>
+        <p>بعد إعداد عدة إقرارات، يكون سؤال "ماذا قدّمت لهذا العميل سابقاً؟" بلغة طبيعية أسرع من البحث يدوياً في الملفات القديمة التي حمّلتها.</p>
+        <p class="mz-doc-label">كيف يعمل</p>
+        <p>يبحث في سجل إقراراتك المحفوظة الخاص بك عمّا تسأل عنه — لا تظهر بيانات أي حساب آخر أبداً، ويصبح الإقرار قابلاً للبحث فقط إذا أدخلت له اسم نشاط/عميل عند تحميل تقرير ذلك الإقرار.</p>
+        <p class="mz-doc-label">ما ستُطلب إدخاله</p>
+        <table class="mz-table">
+          <thead><tr><th>الحقل</th><th>ما تُدخله</th></tr></thead>
+          <tbody><tr><td>السؤال</td><td>مثل "ماذا فعلت مع هذا العميل آخر مرة؟"</td></tr></tbody>
+        </table>
+        <p class="mz-doc-label">كيفية الاستخدام</p>
+        <ol>
+          <li>من الصفحة الرئيسية لمركز الامتثال، اكتب سؤالك.</li>
+          <li>اضغط "استفسار".</li>
+          <li>اقرأ الإجابة.</li>
+        </ol>
+        <p class="mz-doc-example"><strong>مثال:</strong> اسأل "ماذا فعلت مع هذا العميل آخر مرة؟" واحصل على إجابة حقيقية مستمدة من إقراراتك السابقة — وليست إجابة عامة.</p>
+      </div>
+    </div>
+
+    <!-- 5 -->
+    <div class="mz-doc-card">
+      <h3>5. مطابقة المستندات</h3>
+      <p class="mz-doc-label">الغرض ولماذا يستحق الاستخدام</p>
+      <p>
+        كل شركة تحتاج في النهاية للإجابة على "هل ما سجّلناه يطابق ما حدث فعلياً؟" — بمقارنة دفاترك
+        الخاصة مع كشف حساب بنكي أو كشف حساب مورد. يدوياً، هذا من أكثر أجزاء الإقفال الشهري إرهاقاً
+        وعرضة للخطأ؛ معاملة مفقودة أو مكررة يمكن أن تُخلّ بمركزك بالكامل. تقوم هذه الأداة بالمطابقة
+        نيابة عنك، ولا تطلب قراراً إلا في الحالات غير المؤكدة فعلياً.
+      </p>
+      <p class="mz-doc-label">كيف يعمل</p>
+      <p>
+        يقارن محرك مطابقة مدعوم بالذكاء الاصطناعي سجلاتك مع كشف الحساب الآخر، بدءاً بأوضح
+        المؤشرات (تطابق تام في المرجع/المبلغ/التاريخ) وصولاً إلى الحالات الأكثر تعقيداً — تطابق
+        محتمل، عدة مرشحين محتملين لنفس العنصر، دفعة جزئية/بالتقسيط هي في الواقع عدة معاملات
+        مجموعها يساوي واحدة، أو مبلغ قريب لكنه غير مطابق تماماً. أي حالة ليست تطابقاً واضحاً ومؤكداً
+        لا يُقرَّر بشأنها تلقائياً أبداً — تُعرض عليك مع شرح لما قد يكون يحدث (بما في ذلك تنبيه عندما
+        يبدو عدم التطابق وكأنه مجرد فرق بين تسجيل شامل وغير شامل للضريبة)، ولا تصبح نهائية إلا بعد
+        تأكيدك أو رفضك لها.
+      </p>
+      <p class="mz-doc-label">ما ستُطلب إدخاله</p>
+      <table class="mz-table">
+        <thead><tr><th>الحقل</th><th>ما تُدخله</th></tr></thead>
+        <tbody>
+          <tr><td>سجلاتنا</td><td>تصديرك المحاسبي الخاص (مثل من SAP أو Odoo).</td></tr>
+          <tr><td>كشف حساب الطرف الآخر</td><td>مستند الطرف الآخر — كشف حساب بنكي، كشف حساب مورد، إلخ.</td></tr>
+          <tr><td>قرب التاريخ (اختياري)</td><td>عدد الأيام المسموح بها بين قيدين ليُعتبرا تطابقاً محتملاً — اتركه فارغاً للقيمة الافتراضية.</td></tr>
+          <tr><td>هامش المبلغ (اختياري)</td><td>مدى تقارب مبلغين ليُعتبرا تطابقاً محتملاً — اتركه فارغاً للقيمة الافتراضية.</td></tr>
+          <tr><td>قرارات المراجعة</td><td>لكل عنصر غير مؤكد: تأكيد أو رفض، مع ملاحظة اختيارية.</td></tr>
+          <tr><td>الصيغة</td><td>XLSX أو PDF أو DOCX للتقرير النهائي.</td></tr>
+        </tbody>
+      </table>
+      <p class="mz-doc-label">كيفية الاستخدام</p>
+      <ol>
+        <li>افتح "مطابقة المستندات".</li>
+        <li>ارفع الملفين.</li>
+        <li>(اختياري) عدّل قرب التاريخ/هامش المبلغ.</li>
+        <li>اضغط "مطابقة".</li>
+        <li>راجع ما تمت مطابقته تلقائياً، واتخذ قراراً بشأن كل عنصر في "بحاجة إلى مراجعة".</li>
+        <li>(اختياري) شغّل "التحقق من تجميعات محتملة إضافية" لتمريرة ثانية على الدفعات الجزئية/بالتقسيط.</li>
+        <li>اضغط "تأكيد وإنشاء"، اختر صيغة، وحمّل التقرير.</li>
+      </ol>
+      <p class="mz-doc-example"><strong>مثال:</strong> طابق دفتر مبيعات Odoo مع كشف الحساب البنكي للشهر. يطابق ميزان.ai 180 من أصل 200 معاملة تلقائياً، ويُعلّم 12 للمراجعة (منها 3 دفعات جزئية يعتقد أنها تنتمي معاً)، وينتج تقريراً جاهزاً لتسليمه لمحاسبك بمجرد حل تلك الحالات الـ12.</p>
+    </div>
+
+    <!-- 6 -->
+    <div class="mz-doc-card">
+      <h3>6. تحويل وتحرير الملفات</h3>
+      <p>
+        أدوات عامة للملفات — ليست مخصصة لضريبة القيمة المضافة، لكنها مفيدة لتجهيز مستندات الامتثال
+        بالشكل الذي تحتاجه (عقد موقّع، حزمة فواتير مدمجة، إقرار محمي بكلمة مرور) دون مغادرة
+        ميزان.ai.
+      </p>
+
+      <div class="mz-doc-subcard">
+        <h4>6.1 تحويل DOCX/XLSX إلى PDF</h4>
+        <p class="mz-doc-label">الغرض</p>
+        <p>PDF هو عادة الصيغة التي تحتاجها فعلياً للإرسال أو التقديم — مستند عمل بصيغة Word أو Excel ليس دائماً مقبولاً أو مناسباً كنسخة نهائية.</p>
+        <p class="mz-doc-label">ما ستُطلب إدخاله</p>
+        <table class="mz-table">
+          <thead><tr><th>الحقل</th><th>ما تُدخله</th></tr></thead>
+          <tbody><tr><td>الملف</td><td>ملف .docx أو .xlsx.</td></tr></tbody>
+        </table>
+        <p class="mz-doc-label">كيفية الاستخدام</p>
+        <ol>
+          <li>افتح "تحويل وتحرير الملفات" ← "تحويل مستند إلى PDF".</li>
+          <li>اختر ملفك.</li>
+          <li>اضغط "تحويل إلى PDF" — يتم تحميل الملف المحوّل تلقائياً.</li>
+        </ol>
+        <p class="mz-doc-example"><strong>مثال:</strong> حوّل مذكرة امتثال مسودة مكتوبة بـWord إلى PDF جاهز للإرسال أو التقديم.</p>
+      </div>
+
+      <div class="mz-doc-subcard">
+        <h4>6.2 تحرير PDF</h4>
+        <p class="mz-doc-label">الغرض</p>
+        <p>
+          مجموعة أدوات للأمور الشائعة التي تحتاجها على ملف PDF لديك بالفعل — دمج مستندات، حماية
+          الحساسة منها، أو وضع توقيع على عقد — دون برامج مكتبية منفصلة. تعمل كل أداة بنفس الطريقة
+          الأساسية: افتحها من قائمة "تحرير PDF"، وفّر الملف(ات) التي تحتاجها، أدخل بعض الخيارات،
+          وحمّل النتيجة.
+        </p>
+        <table class="mz-table">
+          <thead><tr><th>الأداة</th><th>ما تحتاجه</th><th>مثال</th></tr></thead>
+          <tbody>
+            <tr><td><strong>دمج</strong></td><td>ملفا PDF أو أكثر، بالترتيب الذي تختاره</td><td>دمج ثلاثة ملفات PDF لفواتير منفصلة في ملف واحد قبل إرسالها لعميل.</td></tr>
+            <tr><td><strong>تقسيم</strong></td><td>الملف، صفحة البداية، صفحة النهاية</td><td>استخراج صفحة التوقيع فقط من عقد طويل.</td></tr>
+            <tr><td><strong>تدوير</strong></td><td>الملف، الصفحات ("الكل" أو قائمة)، الزاوية</td><td>تصحيح صفحة تم مسحها ضوئياً بشكل جانبي.</td></tr>
+            <tr><td><strong>علامة مائية</strong></td><td>الملف، نص العلامة المائية</td><td>طباعة "مسودة" عبر مستند قبل اعتماده النهائي.</td></tr>
+            <tr><td><strong>حماية بكلمة مرور</strong></td><td>الملف، كلمة مرور</td><td>حماية إقرار قبل إرساله خارجياً بالبريد.</td></tr>
+            <tr><td><strong>ضغط</strong></td><td>الملف</td><td>تصغير ملف PDF ممسوح ضوئياً كبير الحجم قبل رفعه في مكان آخر.</td></tr>
+            <tr><td><strong>إضافة توقيع</strong></td><td>الملف، رقم الصفحة، صورة توقيعك، ومكان وضعه (بالضغط على معاينة حقيقية للصفحة — دون كتابة إحداثيات)</td><td>وقّع عقداً بالضغط على المكان المطلوب في الصفحة، ثم احمِه بكلمة مرور قبل إرساله.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 7 -->
+    <div class="mz-doc-card">
+      <h3>7. قيد التطوير</h3>
+      <p style="color:var(--text-muted); font-size:13px;">
+        بعض الميزات لم تُبنَ بعد: التوليف بين عدة مستندات، مساعد صوتي، ترجمة ملف كامل (وليس نصاً
+        ملصقاً فقط)، تحويل PDF إلى DOC وPDF إلى XLSX، تحويل مستند ممسوح ضوئياً إلى PDF، وبعض أدوات
+        تحرير PDF الإضافية (التعليق التوضيحي، إضافة مربعات نص، تعبئة النماذج، التنقيح/الإخفاء).
+      </p>
+    </div>
+  </div>
+</div>
+<script>
+mzRequireAuth();
+
+const MZ_DOC_LANG_KEY = "mz_doc_lang";
+
+function mzDocShowLang(lang) {
+  document.getElementById("lang-gate").style.display = "none";
+  document.getElementById("content-en").style.display = lang === "en" ? "block" : "none";
+  document.getElementById("content-ar").style.display = lang === "ar" ? "block" : "none";
+  localStorage.setItem(MZ_DOC_LANG_KEY, lang);
+  window.scrollTo(0, 0);
+}
+
+const savedLang = localStorage.getItem(MZ_DOC_LANG_KEY);
+if (savedLang === "en" || savedLang === "ar") {
+  mzDocShowLang(savedLang);
+}
+</script>
+</body>
+</html>

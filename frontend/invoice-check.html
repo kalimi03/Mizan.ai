@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Mizan.ai — Check invoices for compliance</title>
+<link rel="stylesheet" href="style.css">
+<script src="config.js"></script>
+<script src="common.js"></script>
+</head>
+<body>
+<div class="mz-shell">
+  <a class="mz-back-link" href="calculator.html">&larr; Back to VAT Compliance Center</a>
+  <h2>Check invoices for compliance</h2>
+
+  <!-- Step 1: upload -->
+  <div class="mz-card wide" id="step-upload">
+    <h3>1. Select invoices</h3>
+    <label for="files">One or more invoices (ZATCA e-invoice XML, or a PDF with an embedded XML attachment)</label>
+    <input type="file" id="files" multiple>
+    <label for="tolerance">VAT/total match tolerance (SAR) — leave blank to use the default</label>
+    <input type="number" id="tolerance" min="0" step="0.01">
+    <div style="margin-top:1rem; display:flex; gap:8px;">
+      <button id="check-btn">Check invoices</button>
+      <button id="reset-btn">Start over</button>
+    </div>
+    <p class="mz-status" id="check-status" style="display:none;"></p>
+    <p class="mz-error" id="check-error" style="display:none;"></p>
+  </div>
+
+  <!-- Step 2: results -->
+  <div class="mz-card wide" id="step-results" style="display:none; margin-top:1rem;">
+    <h3>2. Results</h3>
+    <p id="results-summary" style="font-weight:600;"></p>
+
+    <div style="background:var(--surface-2); border:1px solid var(--border); border-radius:var(--radius-sm); padding:0.85rem 1rem; margin-top:0.75rem;">
+      <h4 style="margin:0 0 0.5rem;">Needs your attention</h4>
+      <table class="mz-table" id="flagged-table">
+        <thead><tr><th>File</th><th>Reason</th></tr></thead>
+        <tbody></tbody>
+      </table>
+      <p class="mz-status" id="no-flagged-status" style="display:none; margin:0;">Nothing flagged — every invoice checked out clean.</p>
+    </div>
+
+    <details style="margin-top:0.75rem;">
+      <summary style="cursor:pointer; font-size:13px; color:var(--text-muted);">Show clean invoices too</summary>
+      <table class="mz-table" id="clean-table" style="margin-top:0.5rem;">
+        <thead><tr><th>File</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </details>
+
+    <div style="margin-top:1.25rem; display:flex; gap:8px; align-items:end; flex-wrap:wrap;">
+      <div>
+        <label for="report-format">Format</label>
+        <select id="report-format">
+          <option value="xlsx">XLSX</option>
+          <option value="pdf">PDF</option>
+          <option value="docx">DOCX</option>
+        </select>
+      </div>
+      <div>
+        <label for="report-language">Language</label>
+        <select id="report-language">
+          <option value="en">English</option>
+          <option value="ar">Arabic</option>
+        </select>
+      </div>
+      <button id="download-btn">Download results</button>
+    </div>
+    <p class="mz-error" id="download-error" style="display:none;"></p>
+  </div>
+</div>
+
+<script>
+mzRequireAuth();
+
+let batchId = null;
+
+function show(id) { document.getElementById(id).style.display = "block"; }
+
+async function withBusyLabel(btn, busyText, fn) {
+  const original = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = busyText;
+  try {
+    await fn();
+  } finally {
+    btn.disabled = false;
+    btn.textContent = original;
+  }
+}
+
+// ALL error-severity issues, not just the first — an invoice can be
+// flagged for more than one reason at once, and a reader glancing at this
+// column should see every reason, not lose everything after the first
+// (found via live testing: this used to be "first issue only", which made
+// a real, still-present second issue look dropped entirely).
+function flaggedReasonSummary(invoice) {
+  const messages = (invoice.structural_issues || []).filter(i => i.severity === "error").map(i => i.message);
+  const significantMismatches = (invoice.mismatches || []).filter(m => !m.within_tolerance);
+  if (significantMismatches.length) messages.push("Recalculated VAT/total doesn't match what's printed on the document.");
+  return messages.join(" | ");
+}
+
+function renderResults(data) {
+  document.getElementById("results-summary").textContent =
+    `Checked ${data.total} invoice(s) — ${data.flagged} flagged, ${data.clean} clean.`;
+
+  const flaggedBody = document.querySelector("#flagged-table tbody");
+  const cleanBody = document.querySelector("#clean-table tbody");
+  flaggedBody.innerHTML = "";
+  cleanBody.innerHTML = "";
+
+  const flagged = data.invoices.filter(inv => inv.status === "flagged");
+  const clean = data.invoices.filter(inv => inv.status === "clean");
+
+  document.getElementById("no-flagged-status").style.display = flagged.length ? "none" : "block";
+  document.getElementById("flagged-table").style.display = flagged.length ? "table" : "none";
+
+  for (const inv of flagged) {
+    const tr = document.createElement("tr");
+    tr.innerHTML = "<td></td><td></td>";
+    tr.children[0].textContent = inv.filename;
+    tr.children[1].textContent = flaggedReasonSummary(inv);
+    flaggedBody.appendChild(tr);
+  }
+  for (const inv of clean) {
+    const tr = document.createElement("tr");
+    tr.innerHTML = "<td></td>";
+    tr.children[0].textContent = inv.filename;
+    cleanBody.appendChild(tr);
+  }
+}
+
+document.getElementById("reset-btn").addEventListener("click", () => {
+  batchId = null;
+  document.getElementById("files").value = "";
+  document.getElementById("tolerance").value = "";
+  document.getElementById("step-results").style.display = "none";
+  for (const id of ["check-status", "check-error", "download-error"]) {
+    document.getElementById(id).style.display = "none";
+  }
+});
+
+document.getElementById("check-btn").addEventListener("click", async (e) => {
+  const filesInput = document.getElementById("files");
+  const statusEl = document.getElementById("check-status");
+  const errorEl = document.getElementById("check-error");
+  const resetBtn = document.getElementById("reset-btn");
+  errorEl.style.display = "none";
+
+  if (!filesInput.files.length) {
+    errorEl.textContent = "Choose at least one invoice.";
+    errorEl.style.display = "block";
+    return;
+  }
+
+  const formData = new FormData();
+  for (const f of filesInput.files) formData.append("files", f);
+  const tolerance = document.getElementById("tolerance").value;
+  if (tolerance) formData.append("tolerance", tolerance);
+
+  statusEl.textContent = "Checking every invoice — this may take a moment for a large batch…";
+  statusEl.style.display = "block";
+
+  // Disabled for the whole check, not just the initial POST — starting
+  // over mid-check would abandon a batch_id the summary fetch below is
+  // still relying on, and could leave the page in a confusing half-reset
+  // state while a request is still in flight.
+  resetBtn.disabled = true;
+  await withBusyLabel(e.target, "Checking…", async () => {
+  try {
+    const response = await mzFetch(MIZAN_CONFIG.calculator + "/api/compliance/invoice-check", {
+      method: "POST", body: formData,
+    });
+    if (!response.ok) {
+      errorEl.textContent = await mzErrorDetail(response);
+      errorEl.style.display = "block";
+      statusEl.style.display = "none";
+      return;
+    }
+    const data = await response.json();
+    batchId = data.batch_id;
+    statusEl.style.display = "none";
+
+    const summaryResponse = await mzFetch(MIZAN_CONFIG.calculator + `/api/compliance/invoice-check/${batchId}/summary`);
+    if (!summaryResponse.ok) {
+      errorEl.textContent = await mzErrorDetail(summaryResponse);
+      errorEl.style.display = "block";
+      return;
+    }
+    renderResults(await summaryResponse.json());
+    show("step-results");
+  } catch (err) {
+    errorEl.textContent = "Could not reach the server. Is it running?";
+    errorEl.style.display = "block";
+    statusEl.style.display = "none";
+  }
+  });
+  resetBtn.disabled = false;
+});
+
+document.getElementById("download-btn").addEventListener("click", async (e) => {
+  const errorEl = document.getElementById("download-error");
+  errorEl.style.display = "none";
+  await withBusyLabel(e.target, "Preparing download…", async () => {
+  try {
+    const response = await mzFetch(MIZAN_CONFIG.calculator + `/api/compliance/invoice-check/${batchId}/report`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        format: document.getElementById("report-format").value,
+        language: document.getElementById("report-language").value,
+      }),
+    });
+    if (!response.ok) {
+      errorEl.textContent = await mzErrorDetail(response);
+      errorEl.style.display = "block";
+      return;
+    }
+    const blob = await response.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "invoice_compliance_check.zip";
+    a.click();
+    URL.revokeObjectURL(url);
+  } catch (err) {
+    errorEl.textContent = "Could not reach the server. Is it running?";
+    errorEl.style.display = "block";
+  }
+  });
+});
+</script>
+</body>
+</html>

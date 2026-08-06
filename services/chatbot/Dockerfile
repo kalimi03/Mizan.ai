@@ -8,7 +8,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONPATH=/app
 
 # libreoffice-writer/-calc: DOCX->PDF and XLSX->PDF conversion (Feature H,
-# agents/doc_format_conversion/) via `soffice --headless`. Only these two
+# features/converter/) via `soffice --headless`. Only these two
 # components are needed (writer_pdf_Export / calc_pdf_Export filters) --
 # confirmed in docs/mizan_format_conversion_findings.md -- the full
 # `libreoffice` meta-package pulls in Impress/Draw/Base and is unnecessary.

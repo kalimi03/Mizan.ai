@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Mizan.ai — Log in</title>
+<link rel="stylesheet" href="style.css">
+<script src="config.js"></script>
+<script src="common.js"></script>
+</head>
+<body>
+<div class="mz-auth-shell">
+  <div class="mz-auth-logo">
+    <svg class="mz-logo-icon" viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <line x1="12" y1="3" x2="12" y2="19"/>
+      <line x1="5" y1="7" x2="19" y2="7"/>
+      <path d="M5 7l-2.5 5a2.5 2.5 0 0 0 5 0L5 7z"/>
+      <path d="M19 7l-2.5 5a2.5 2.5 0 0 0 5 0L19 7z"/>
+      <line x1="8" y1="20" x2="16" y2="20"/>
+    </svg>
+    <span class="mz-wordmark"><span class="mz-wordmark-main">Mizan</span><span class="mz-wordmark-suffix">.ai</span></span>
+    <span class="mz-wordmark-ar" dir="rtl" lang="ar">ميزان</span>
+  </div>
+  <div class="mz-card">
+    <h2>Log in</h2>
+    <form id="login-form">
+      <label for="email">Email</label>
+      <input type="email" id="email" required>
+      <label for="password">Password</label>
+      <input type="password" id="password" required>
+      <button type="submit" style="width:100%; margin-top:1.25rem;">Log in</button>
+    </form>
+    <p class="mz-error" id="error" style="display:none;"></p>
+    <p style="font-size:14px; margin-top:1rem;">
+      <a href="forgot-password.html">Forgot password?</a>
+    </p>
+    <p style="font-size:14px;">
+      No account? <a href="register.html">Register</a>
+    </p>
+  </div>
+</div>
+<script>
+// Already logged in? Skip straight past this page.
+if (mzGetToken()) window.location.href = "app.html";
+
+document.getElementById("login-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const errorEl = document.getElementById("error");
+  errorEl.style.display = "none";
+
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
+
+  try {
+    const response = await fetch(MIZAN_CONFIG.chatbot + "/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
+    });
+    if (!response.ok) {
+      errorEl.textContent = await mzErrorDetail(response);
+      errorEl.style.display = "block";
+      return;
+    }
+    const data = await response.json();
+    mzSaveToken(data.jwt_token);
+    if (data.must_reset_password) {
+      // A temp-password login — this token only works for reset-password,
+      // every other endpoint rejects it until a real password is set.
+      window.location.href = "reset-password.html";
+    } else {
+      window.location.href = "app.html";
+    }
+  } catch (err) {
+    errorEl.textContent = "Could not reach the server. Is it running?";
+    errorEl.style.display = "block";
+  }
+});
+</script>
+</body>
+</html>

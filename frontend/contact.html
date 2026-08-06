@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Mizan.ai — Contact us</title>
+<link rel="stylesheet" href="style.css">
+<script src="config.js"></script>
+<script src="common.js"></script>
+</head>
+<body>
+<div class="mz-shell">
+  <a class="mz-back-link" href="app.html">&larr; Back to home</a>
+  <div class="mz-card">
+    <div dir="rtl" lang="ar">
+      <h2>تواصل معنا</h2>
+      <p style="font-size:13px; color:var(--text-muted); margin-top:-0.5rem;">
+        أرسل ملاحظاتك، أبلغ عن مشكلة، أو اطرح سؤالاً.
+      </p>
+    </div>
+
+    <hr style="border:none; border-top:1px solid var(--border); margin:1.25rem 0;">
+
+    <h2>Contact us</h2>
+    <p style="font-size:13px; color:var(--text-muted); margin-top:-0.5rem;">
+      Send feedback, report a problem, or ask something.
+    </p>
+    <label for="message">Message</label>
+    <textarea id="message" rows="6"></textarea>
+    <button id="send-btn" style="margin-top:1rem;">Send</button>
+    <p class="mz-error" id="error" style="display:none;"></p>
+    <p class="mz-status" id="status" style="display:none;"></p>
+  </div>
+</div>
+<script>
+mzRequireAuth();
+
+document.getElementById("send-btn").addEventListener("click", async () => {
+  const errorEl = document.getElementById("error");
+  const statusEl = document.getElementById("status");
+  const messageEl = document.getElementById("message");
+  errorEl.style.display = "none";
+  statusEl.style.display = "none";
+
+  const message = messageEl.value.trim();
+  if (!message) {
+    errorEl.textContent = "Enter a message first.";
+    errorEl.style.display = "block";
+    return;
+  }
+
+  try {
+    const response = await mzFetch(MIZAN_CONFIG.chatbot + "/api/feedback", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message }),
+    });
+    if (!response.ok) {
+      errorEl.textContent = await mzErrorDetail(response);
+      errorEl.style.display = "block";
+      return;
+    }
+    messageEl.value = "";
+    statusEl.textContent = "Sent — thank you.";
+    statusEl.style.display = "block";
+  } catch (err) {
+    errorEl.textContent = "Could not reach the server. Is it running?";
+    errorEl.style.display = "block";
+  }
+});
+</script>
+</body>
+</html>
