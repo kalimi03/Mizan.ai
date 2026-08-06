@@ -1,0 +1,88 @@
+<style>
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.55} }
+.mz-logo i { animation: pulse 2.4s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) { .mz-logo i { animation: none; } }
+.mz-card { border: 0.5px solid var(--border); border-radius: 12px; background: var(--surface-2); cursor: pointer; transition: border-color .15s; padding: 1rem; display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; }
+.mz-card:hover { border-color: var(--border-strong); }
+.mz-card.soon { opacity: .55; cursor: default; }
+.mz-navbtn { background: none; border: none; color: var(--text-secondary); cursor: pointer; padding: 4px; }
+.mz-navbtn:hover { color: var(--text-primary); }
+.mz-drop { border: 0.5px dashed var(--border-strong); border-radius: var(--radius); padding: 1.5rem; text-align: center; color: var(--text-secondary); margin-bottom: 1rem; }
+</style>
+<h2 class="sr-only">Mizan.ai app shell with a home feature grid and a per-feature workspace view</h2>
+<div style="background: var(--surface-1); border-radius: 16px; padding: 1.5rem;">
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+    <div class="mz-logo" style="display:flex; align-items:center; gap:10px;">
+      <i class="ti ti-scale" style="font-size:24px; color:var(--text-accent);" aria-hidden="true"></i>
+      <span class="th">Mizan.ai</span>
+    </div>
+    <div style="display:flex; gap:4px;">
+      <button class="mz-navbtn" aria-label="Home" onclick="mzGoHome()"><i class="ti ti-home" style="font-size:18px;" aria-hidden="true"></i></button>
+      <button class="mz-navbtn" aria-label="About" onclick="mzStatus('About Mizan.ai — placeholder page')"><i class="ti ti-info-circle" style="font-size:18px;" aria-hidden="true"></i></button>
+      <button class="mz-navbtn" aria-label="Contact us" onclick="mzStatus('Contact us — placeholder page')"><i class="ti ti-mail" style="font-size:18px;" aria-hidden="true"></i></button>
+      <button class="mz-navbtn" aria-label="Reset" onclick="mzReset()"><i class="ti ti-refresh" style="font-size:18px;" aria-hidden="true"></i></button>
+    </div>
+  </div>
+
+  <div id="mz-home">
+    <p style="color:var(--text-secondary); margin:0 0 1.25rem; font-size:14px;">Arabic-first ZATCA and VAT compliance, for Saudi SMEs.</p>
+    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(150px,1fr)); gap:12px;">
+      <div class="mz-card" onclick="mzOpenFeature('Ask ZATCA/VAT questions')"><i class="ti ti-message-question" style="font-size:22px;" aria-hidden="true"></i><span class="ts">Ask ZATCA/VAT questions</span></div>
+      <div class="mz-card" onclick="mzOpenFeature('Chat with your document')"><i class="ti ti-file-search" style="font-size:22px;" aria-hidden="true"></i><span class="ts">Chat with your document</span></div>
+      <div class="mz-card" onclick="mzOpenFeature('Translate a document')"><i class="ti ti-language" style="font-size:22px;" aria-hidden="true"></i><span class="ts">Translate a document</span></div>
+      <div class="mz-card" onclick="mzOpenFeature('Compare documents')"><i class="ti ti-git-compare" style="font-size:22px;" aria-hidden="true"></i><span class="ts">Compare documents</span></div>
+      <div class="mz-card" onclick="mzOpenFeature('ZATCA compliance calculator')"><i class="ti ti-calculator" style="font-size:22px;" aria-hidden="true"></i><span class="ts">ZATCA compliance calculator</span></div>
+      <div class="mz-card" onclick="mzOpenFeature('Validate filled documentation')"><i class="ti ti-checkbox" style="font-size:22px;" aria-hidden="true"></i><span class="ts">Validate filled documentation</span></div>
+      <div class="mz-card" onclick="mzOpenFeature('Convert file format')"><i class="ti ti-file-type-pdf" style="font-size:22px;" aria-hidden="true"></i><span class="ts">Convert file format</span></div>
+      <div class="mz-card soon"><i class="ti ti-stack-2" style="font-size:22px;" aria-hidden="true"></i><span class="ts">Create new document</span><span style="font-size:11px; color:var(--text-muted);">Coming soon</span></div>
+    </div>
+  </div>
+
+  <div id="mz-feature" style="display:none;">
+    <button class="mz-navbtn" style="margin-bottom:0.75rem; display:flex; align-items:center; gap:4px; font-size:13px;" onclick="mzGoHome()"><i class="ti ti-arrow-left" style="font-size:16px;" aria-hidden="true"></i>Back to home</button>
+    <h3 id="mz-feature-name" style="margin:0 0 1rem;"></h3>
+    <div id="mz-upload" class="mz-drop"><i class="ti ti-upload" style="font-size:20px;" aria-hidden="true"></i><div class="ts" id="mz-upload-label" style="margin-top:6px;">Upload a document</div></div>
+  </div>
+
+  <div style="display:flex; gap:8px; margin-top:1.25rem;">
+    <input type="text" id="mz-input" placeholder="Ask a question or give an instruction" style="flex:1;" />
+    <button onclick="mzProceed()">Proceed</button>
+  </div>
+  <p id="mz-status" style="font-size:12px; color:var(--text-muted); margin:8px 0 0;">Stop / run controls appear here once a task is in progress.</p>
+</div>
+<script>
+var FEATURES = {
+  'Ask ZATCA/VAT questions': {upload:false},
+  'Chat with your document': {upload:true, label:'Upload the document you want to ask about'},
+  'Translate a document': {upload:true, label:'Upload a document to translate'},
+  'Compare documents': {upload:true, label:'Upload two related documents to compare'},
+  'ZATCA compliance calculator': {upload:true, label:'Upload invoices, POs, and related documents'},
+  'Validate filled documentation': {upload:true, label:'Upload the filled form to validate'},
+  'Convert file format': {upload:true, label:'Upload a DOCX or XLSX file to convert'}
+};
+function mzOpenFeature(name){
+  document.getElementById('mz-home').style.display = 'none';
+  document.getElementById('mz-feature').style.display = 'block';
+  document.getElementById('mz-feature-name').textContent = name;
+  var cfg = FEATURES[name];
+  document.getElementById('mz-upload').style.display = cfg.upload ? 'block' : 'none';
+  if (cfg.upload) document.getElementById('mz-upload-label').textContent = cfg.label;
+  mzStatus('Working on: ' + name);
+}
+function mzGoHome(){
+  document.getElementById('mz-home').style.display = 'block';
+  document.getElementById('mz-feature').style.display = 'none';
+  mzStatus('Stop / run controls appear here once a task is in progress.');
+}
+function mzReset(){
+  document.getElementById('mz-input').value = '';
+  mzGoHome();
+}
+function mzStatus(msg){ document.getElementById('mz-status').textContent = msg; }
+function mzProceed(){
+  var featureVisible = document.getElementById('mz-feature').style.display !== 'none';
+  var name = featureVisible ? document.getElementById('mz-feature-name').textContent : 'General chat';
+  var text = document.getElementById('mz-input').value;
+  sendPrompt('Design the working flow for: ' + name + (text ? (' — input: ' + text) : ''));
+}
+</script>

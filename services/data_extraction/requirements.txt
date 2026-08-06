@@ -1,0 +1,18 @@
+# data_extraction service -- Feature E's document extraction step.
+#
+# docling pinned (not left floating like features/explainer/offline/
+# requirements.txt's copy) -- confirmed working at this exact version
+# against this repo's extraction code during Feature E development.
+#
+# No torch/FlagEmbedding/qdrant-client here -- those are for BGE-M3
+# embedding/RAG-indexing (features/explainer/offline/), not needed for
+# document extraction. docling's own table-structure model (docling_ibm_models)
+# pulls in some CPU torch build transitively regardless -- that's fine, it's
+# a normal (not CUDA-pinned) build, nothing extra to configure for it here.
+docling==2.114.0
+pandas
+openpyxl
+PyMuPDF>=1.24.0
+fastapi>=0.110.0
+uvicorn[standard]>=0.29.0
+python-multipart>=0.0.9

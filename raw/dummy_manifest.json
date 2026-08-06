@@ -1,0 +1,11 @@
+[
+  {
+    "path": "raw/dummy_penalty_matrix.csv",
+    "document_type": "ZATCA Penalty Matrix (DUMMY TEST DATA)",
+    "language": "en",
+    "version_label": "current",
+    "is_current": true,
+    "source_site": "zatca.gov.sa",
+    "source_url": "https://zatca.gov.sa/dummy-test"
+  }
+]

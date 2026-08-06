@@ -1,0 +1,418 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Mizan.ai — Prepare a period VAT return</title>
+<link rel="stylesheet" href="style.css">
+<script src="config.js"></script>
+<script src="common.js"></script>
+</head>
+<body>
+<div class="mz-shell">
+  <a class="mz-back-link" href="calculator.html">&larr; Back to VAT Compliance Center</a>
+  <h2>Prepare a period VAT return</h2>
+
+  <!-- Step 1: upload -->
+  <div class="mz-card wide" id="step-upload">
+    <h3>1. Select sales and purchase files</h3>
+    <label for="files">One multi-sheet workbook, or several separate files — either way is fine</label>
+    <input type="file" id="files" multiple>
+    <div style="margin-top:1rem; display:flex; gap:8px;">
+      <button id="upload-btn">Upload &amp; analyze</button>
+      <button id="reset-btn">Start over</button>
+    </div>
+    <p class="mz-status" id="upload-status" style="display:none;"></p>
+    <p class="mz-error" id="upload-error" style="display:none;"></p>
+  </div>
+
+  <!-- Step 2: confirm mapping — opens as a popup once "Upload & analyze"
+       returns, same pattern as Comparator's results modal. Closing without
+       confirming just dismisses it; re-run "Upload & analyze" to see it
+       again. -->
+  <dialog class="mz-card" id="mapping-modal">
+    <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+      <h3 style="margin:0;">Check what we found</h3>
+      <button id="mapping-modal-close" class="mz-secondary" style="padding:2px 10px;" aria-label="Close" title="Close">&times;</button>
+    </div>
+    <p class="mz-status" style="margin:0.5rem 0 0.75rem;">
+      We've guessed which sheet/file is sales and which is purchases — check this before continuing.
+    </p>
+    <div id="sources-list"></div>
+    <button id="confirm-mapping-btn" style="margin-top:1rem;">Confirm &amp; process</button>
+    <p class="mz-error" id="mapping-error" style="display:none;"></p>
+  </dialog>
+
+  <!-- Step 3: results (+ optional review) -->
+  <div class="mz-card wide" id="step-results" style="display:none; margin-top:1rem;">
+    <h3>3. Results</h3>
+    <p id="provisional-notice" style="display:none; margin:0 0 0.6rem; padding:0.5rem 0.75rem; border-radius:var(--radius-sm); background:#fdf3e3; border:1px solid #e8c785; color:#7a5a12; font-size:13px; font-weight:600;"></p>
+    <table class="mz-table" id="headline-table">
+      <tbody></tbody>
+    </table>
+
+    <div id="consistency-panel" style="display:none; background:var(--surface-2); border:1px solid var(--border); border-radius:var(--radius-sm); padding:0.85rem 1rem; margin-top:0.85rem;">
+      <h4 style="margin:0 0 0.5rem;">Consistency checks</h4>
+      <ul id="consistency-list" style="margin:0; font-size:13px;"></ul>
+    </div>
+
+    <div id="review-panel" style="display:none; background:var(--surface-2); border:1px solid var(--border); border-radius:var(--radius-sm); padding:0.85rem 1rem; margin-top:0.85rem;">
+      <h4 style="margin:0 0 0.5rem;">Needs your decision</h4>
+      <p style="font-size:13px; color:var(--text-muted); margin:0 0 0.5rem;">
+        These purchases could go either way depending on how they're actually used in the business — decide each one.
+      </p>
+      <div id="review-items"></div>
+      <button id="submit-review-btn" style="margin-top:0.75rem;">Submit review</button>
+      <p class="mz-error" id="review-error" style="display:none;"></p>
+    </div>
+  </div>
+
+  <!-- Step 4: report -->
+  <div class="mz-card wide" id="step-report" style="display:none; margin-top:1rem;">
+    <h3>4. Download report</h3>
+    <label for="period-label">Period</label>
+    <input type="text" id="period-label" placeholder="e.g. July 2026">
+    <label for="business-name">Business / client name (optional — who this filing is for)</label>
+    <input type="text" id="business-name">
+    <div style="display:flex; gap:8px; align-items:end; flex-wrap:wrap; margin-top:0.75rem;">
+      <div>
+        <label for="report-format">Format</label>
+        <select id="report-format">
+          <option value="xlsx">XLSX</option>
+          <option value="pdf">PDF</option>
+          <option value="docx">DOCX</option>
+        </select>
+      </div>
+      <div>
+        <label for="report-language">Language</label>
+        <select id="report-language">
+          <option value="en">English</option>
+          <option value="ar">Arabic</option>
+        </select>
+      </div>
+      <button id="download-btn">Download report</button>
+    </div>
+    <p class="mz-error" id="download-error" style="display:none;"></p>
+  </div>
+</div>
+
+<script>
+mzRequireAuth();
+
+let batchId = null;
+let sources = [];
+
+function show(id) { document.getElementById(id).style.display = "block"; }
+function hide(id) { document.getElementById(id).style.display = "none"; }
+
+async function withBusyLabel(btn, busyText, fn) {
+  const original = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = busyText;
+  try {
+    await fn();
+  } finally {
+    btn.disabled = false;
+    btn.textContent = original;
+  }
+}
+
+const mappingModalEl = document.getElementById("mapping-modal");
+document.getElementById("mapping-modal-close").addEventListener("click", () => mappingModalEl.close());
+mappingModalEl.addEventListener("click", (e) => {
+  if (e.target === mappingModalEl) mappingModalEl.close(); // click on the backdrop, not inner content
+});
+
+document.getElementById("reset-btn").addEventListener("click", () => {
+  batchId = null;
+  sources = [];
+  document.getElementById("files").value = "";
+  document.getElementById("sources-list").innerHTML = "";
+  document.getElementById("review-items").innerHTML = "";
+  if (mappingModalEl.open) mappingModalEl.close();
+  for (const id of ["step-results", "step-report"]) hide(id);
+  for (const id of ["upload-status", "upload-error", "mapping-error", "review-error", "download-error", "provisional-notice"]) {
+    document.getElementById(id).style.display = "none";
+  }
+});
+
+// --- Step 1: upload ---------------------------------------------------------
+
+document.getElementById("upload-btn").addEventListener("click", async (e) => {
+  const filesInput = document.getElementById("files");
+  const statusEl = document.getElementById("upload-status");
+  const errorEl = document.getElementById("upload-error");
+  const resetBtn = document.getElementById("reset-btn");
+  errorEl.style.display = "none";
+
+  if (!filesInput.files.length) {
+    errorEl.textContent = "Choose at least one file.";
+    errorEl.style.display = "block";
+    return;
+  }
+
+  const formData = new FormData();
+  for (const f of filesInput.files) formData.append("files", f);
+
+  // Disabled for the whole upload+analyze call — starting over mid-request
+  // would abandon a batch_id nothing downstream has settled on yet, and
+  // could leave the page in a confusing half-reset state.
+  resetBtn.disabled = true;
+  await withBusyLabel(e.target, "Analyzing…", async () => {
+  try {
+    const response = await mzFetch(MIZAN_CONFIG.calculator + "/api/compliance/period-return/upload", {
+      method: "POST", body: formData,
+    });
+    if (!response.ok) {
+      errorEl.textContent = await mzErrorDetail(response);
+      errorEl.style.display = "block";
+      return;
+    }
+    const data = await response.json();
+    batchId = data.batch_id;
+    sources = data.sources;
+    if (data.guessed_business_name) {
+      document.getElementById("business-name").value = data.guessed_business_name;
+    }
+    statusEl.textContent = `Found ${sources.length} sheet(s)/file(s).`;
+    statusEl.style.display = "block";
+    renderSources();
+    mappingModalEl.showModal();
+  } catch (err) {
+    errorEl.textContent = "Could not reach the server. Is it running?";
+    errorEl.style.display = "block";
+  }
+  });
+  resetBtn.disabled = false;
+});
+
+// --- Step 2: confirm mapping -------------------------------------------------
+
+const ROLE_LABELS = { sales: "Sales / Output VAT", purchases: "Purchases / Input VAT", unknown: "Not sure", ignore: "Ignore this one" };
+
+function renderSources() {
+  const container = document.getElementById("sources-list");
+  container.innerHTML = "";
+  for (const s of sources) {
+    const card = document.createElement("div");
+    card.style.cssText = "border:1px solid var(--border); border-radius:var(--radius-sm); padding:0.75rem 1rem; margin-bottom:0.6rem;";
+    const preambleText = (s.preamble || []).join(" — ");
+    card.innerHTML = `
+      <p style="font-weight:600; margin:0 0 4px;">${s.sheet_label}</p>
+      <p style="font-size:12px; color:var(--text-muted); margin:0 0 6px;">${preambleText || "(no title text found)"}</p>
+      <p style="font-size:12px; color:var(--text-muted); margin:0 0 8px;">Columns: ${s.column_names.join(", ")}</p>
+      <label style="font-size:13px;">This sheet/file is:</label>
+      <select class="source-role-select" data-source-id="${s.source_id}">
+        <option value="sales" ${s.guessed_role === "sales" ? "selected" : ""}>${ROLE_LABELS.sales}</option>
+        <option value="purchases" ${s.guessed_role === "purchases" ? "selected" : ""}>${ROLE_LABELS.purchases}</option>
+        <option value="ignore" ${s.guessed_role === "unknown" ? "selected" : ""}>${ROLE_LABELS.ignore}</option>
+      </select>
+      ${s.has_category_column ? "" : `
+      <div style="margin-top:8px;">
+        <label style="font-size:13px;">No tax-rate column found in this sheet — what rate should we assume when checking its rows?</label>
+        <select class="source-default-rate-select" data-source-id="${s.source_id}">
+          <option value="">Leave unanswered — assume Standard 15% and note it</option>
+          <option value="standard">Standard 15%</option>
+          <option value="zero_rated">Zero-rated (0%)</option>
+          <option value="exempt">Exempt (0%)</option>
+        </select>
+      </div>`}
+    `;
+    container.appendChild(card);
+  }
+}
+
+function readMapping() {
+  const mapping = {};
+  document.querySelectorAll(".source-role-select").forEach((sel) => {
+    mapping[sel.dataset.sourceId] = sel.value;
+  });
+  return mapping;
+}
+
+function readDefaultRates() {
+  const defaultRates = {};
+  document.querySelectorAll(".source-default-rate-select").forEach((sel) => {
+    if (sel.value) defaultRates[sel.dataset.sourceId] = sel.value;
+  });
+  return defaultRates;
+}
+
+function renderHeadline(headline) {
+  // The figures below are computed by excluding every still-pending
+  // review item by default — correct once submitted, but not final until
+  // then. Shown prominently so the numbers are never mistaken for
+  // finished/final while a human decision is still outstanding.
+  const provisionalEl = document.getElementById("provisional-notice");
+  const pendingCount = (headline.review_items || []).length;
+  if (headline.status === "awaiting_review" && pendingCount) {
+    provisionalEl.textContent = `Provisional — excludes ${pendingCount} item(s) still awaiting your decision below.`;
+    provisionalEl.style.display = "block";
+  } else {
+    provisionalEl.style.display = "none";
+  }
+
+  const tbody = document.querySelector("#headline-table tbody");
+  tbody.innerHTML = "";
+  const rows = [
+    ["Output VAT (on sales)", headline.output_vat],
+    ["Input VAT, all purchases", headline.input_vat_total],
+    ["Reclaimable Input VAT", headline.reclaimable_input_vat],
+    ["Net VAT position (owed if positive, refund if negative)", headline.net_position],
+  ];
+  for (const [label, value] of rows) {
+    const tr = document.createElement("tr");
+    tr.innerHTML = "<td></td><td></td>";
+    tr.children[0].textContent = label;
+    tr.children[1].textContent = value;
+    tbody.appendChild(tr);
+  }
+
+  const consistencyPanel = document.getElementById("consistency-panel");
+  const consistencyList = document.getElementById("consistency-list");
+  consistencyList.innerHTML = "";
+  if (headline.consistency_issues && headline.consistency_issues.length) {
+    for (const issue of headline.consistency_issues) {
+      const li = document.createElement("li");
+      li.textContent = `${issue.source}: ${issue.message}`;
+      consistencyList.appendChild(li);
+    }
+    consistencyPanel.style.display = "block";
+  } else {
+    consistencyPanel.style.display = "none";
+  }
+
+  const reviewPanel = document.getElementById("review-panel");
+  if (headline.status === "awaiting_review" && headline.review_items && headline.review_items.length) {
+    renderReviewItems(headline.review_items);
+    reviewPanel.style.display = "block";
+    hide("step-report");
+  } else {
+    reviewPanel.style.display = "none";
+    show("step-report");
+  }
+}
+
+document.getElementById("confirm-mapping-btn").addEventListener("click", async (e) => {
+  const errorEl = document.getElementById("mapping-error");
+  errorEl.style.display = "none";
+  await withBusyLabel(e.target, "Processing…", async () => {
+  try {
+    const response = await mzFetch(MIZAN_CONFIG.calculator + `/api/compliance/period-return/${batchId}/confirm-mapping`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ mapping: readMapping(), default_rates: readDefaultRates() }),
+    });
+    if (!response.ok) {
+      errorEl.textContent = await mzErrorDetail(response);
+      errorEl.style.display = "block";
+      return;
+    }
+    renderHeadline(await response.json());
+    mappingModalEl.close();
+    show("step-results");
+  } catch (err) {
+    errorEl.textContent = "Could not reach the server. Is it running?";
+    errorEl.style.display = "block";
+  }
+  });
+});
+
+// --- Step 3: review (only shown if needed) -----------------------------------
+
+function renderReviewItems(items) {
+  const container = document.getElementById("review-items");
+  container.innerHTML = "";
+  for (const item of items) {
+    const card = document.createElement("div");
+    card.style.cssText = "border:1px solid var(--border); border-radius:var(--radius-sm); padding:0.6rem 0.85rem; margin-bottom:0.5rem; background:var(--surface);";
+    card.innerHTML = `
+      <p style="margin:0 0 4px;"><strong>${item.description}</strong> — ${item.source} — VAT ${item.vat_amount}</p>
+      <p style="font-size:12px; color:var(--text-muted); margin:0 0 6px;">${item.reason}</p>
+      <label style="display:inline-flex; align-items:center; gap:4px; font-weight:normal; margin-inline-end:16px;">
+        <input type="radio" name="review-${item.item_id}" value="yes"> Reclaimable
+      </label>
+      <label style="display:inline-flex; align-items:center; gap:4px; font-weight:normal;">
+        <input type="radio" name="review-${item.item_id}" value="no"> Not reclaimable
+      </label>
+    `;
+    card.dataset.itemId = item.item_id;
+    container.appendChild(card);
+  }
+}
+
+document.getElementById("submit-review-btn").addEventListener("click", async (e) => {
+  const errorEl = document.getElementById("review-error");
+  errorEl.style.display = "none";
+
+  const decisions = {};
+  document.querySelectorAll("#review-items > div").forEach((card) => {
+    const checked = card.querySelector(`input[name="review-${card.dataset.itemId}"]:checked`);
+    if (checked) decisions[card.dataset.itemId] = checked.value === "yes";
+  });
+
+  await withBusyLabel(e.target, "Submitting…", async () => {
+  try {
+    const response = await mzFetch(MIZAN_CONFIG.calculator + `/api/compliance/period-return/${batchId}/review`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ decisions }),
+    });
+    if (!response.ok) {
+      errorEl.textContent = await mzErrorDetail(response);
+      errorEl.style.display = "block";
+      return;
+    }
+    renderHeadline(await response.json());
+  } catch (err) {
+    errorEl.textContent = "Could not reach the server. Is it running?";
+    errorEl.style.display = "block";
+  }
+  });
+});
+
+// --- Step 4: report -----------------------------------------------------------
+
+document.getElementById("download-btn").addEventListener("click", async (e) => {
+  const errorEl = document.getElementById("download-error");
+  errorEl.style.display = "none";
+
+  const periodLabel = document.getElementById("period-label").value.trim();
+  if (!periodLabel) {
+    errorEl.textContent = "Enter the period this return covers (e.g. \"July 2026\").";
+    errorEl.style.display = "block";
+    return;
+  }
+
+  await withBusyLabel(e.target, "Preparing download…", async () => {
+  try {
+    const response = await mzFetch(MIZAN_CONFIG.calculator + `/api/compliance/period-return/${batchId}/report`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        format: document.getElementById("report-format").value,
+        language: document.getElementById("report-language").value,
+        period_label: periodLabel,
+        business_name: document.getElementById("business-name").value || null,
+      }),
+    });
+    if (!response.ok) {
+      errorEl.textContent = await mzErrorDetail(response);
+      errorEl.style.display = "block";
+      return;
+    }
+    const blob = await response.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "vat_return.zip";
+    a.click();
+    URL.revokeObjectURL(url);
+  } catch (err) {
+    errorEl.textContent = "Could not reach the server. Is it running?";
+    errorEl.style.display = "block";
+  }
+  });
+});
+</script>
+</body>
+</html>

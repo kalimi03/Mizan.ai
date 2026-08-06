@@ -1,0 +1,554 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Mizan.ai — Convert &amp; edit</title>
+<link rel="stylesheet" href="style.css">
+<script src="config.js"></script>
+<script src="common.js"></script>
+</head>
+<body>
+<div class="mz-shell">
+  <a class="mz-back-link" href="app.html">&larr; Back to home</a>
+
+  <!-- Top level: pick a category. -->
+  <div class="mz-panel" id="panel-top">
+    <div class="mz-grid">
+      <span class="mz-feature-card" data-target="panel-convert"><span class="mz-icon">📄</span><span>Convert doc to PDF</span></span>
+      <span class="mz-feature-card" data-target="panel-edit-menu"><span class="mz-icon">✏️</span><span>Edit PDF</span></span>
+    </div>
+  </div>
+
+  <!-- Convert doc to PDF -->
+  <div class="mz-panel" id="panel-convert" style="display:none;">
+    <a class="mz-back-link" href="#" data-target="panel-top">&larr; Back</a>
+    <div class="mz-card">
+      <h2>Convert DOCX/XLSX to PDF</h2>
+      <label for="convert-file">File to convert (.docx or .xlsx)</label>
+      <input type="file" id="convert-file" accept=".docx,.xlsx">
+      <button id="convert-btn" style="margin-top:1rem;">Convert to PDF</button>
+      <p class="mz-status" id="convert-status" style="display:none;"></p>
+      <p class="mz-error" id="convert-error" style="display:none;"></p>
+
+      <h3 style="margin-top:1.5rem;">More conversions</h3>
+      <div class="mz-grid">
+        <span class="mz-feature-card soon"><span class="mz-icon">📃</span><span>PDF to DOC</span><span class="soon-label">Coming soon</span></span>
+        <span class="mz-feature-card soon"><span class="mz-icon">📊</span><span>PDF to XLSX</span><span class="soon-label">Coming soon</span></span>
+        <span class="mz-feature-card soon"><span class="mz-icon">🖨️</span><span>Scanned document to PDF</span><span class="soon-label">Coming soon</span></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit PDF: sub-menu -->
+  <div class="mz-panel" id="panel-edit-menu" style="display:none;">
+    <a class="mz-back-link" href="#" data-target="panel-top">&larr; Back</a>
+    <div class="mz-grid">
+      <span class="mz-feature-card" data-target="panel-edit-merge"><span class="mz-icon">🔗</span><span>Merge</span></span>
+      <span class="mz-feature-card" data-target="panel-edit-split"><span class="mz-icon">✂️</span><span>Split</span></span>
+      <span class="mz-feature-card" data-target="panel-edit-rotate"><span class="mz-icon">🔄</span><span>Rotate</span></span>
+      <span class="mz-feature-card" data-target="panel-edit-watermark"><span class="mz-icon">💧</span><span>Watermark</span></span>
+      <span class="mz-feature-card" data-target="panel-edit-password"><span class="mz-icon">🔒</span><span>Password-protect</span></span>
+      <span class="mz-feature-card" data-target="panel-edit-compress"><span class="mz-icon">🗜️</span><span>Compress</span></span>
+      <span class="mz-feature-card" data-target="panel-edit-signature"><span class="mz-icon">✍️</span><span>Add signature</span></span>
+      <span class="mz-feature-card soon"><span class="mz-icon">✏️</span><span>Annotate</span><span class="soon-label">Coming soon</span></span>
+      <span class="mz-feature-card soon"><span class="mz-icon">🔤</span><span>Add text boxes</span><span class="soon-label">Coming soon</span></span>
+      <span class="mz-feature-card soon"><span class="mz-icon">📝</span><span>Fill form</span><span class="soon-label">Coming soon</span></span>
+      <span class="mz-feature-card soon"><span class="mz-icon">⬛</span><span>Redact</span><span class="soon-label">Coming soon</span></span>
+    </div>
+  </div>
+
+  <!-- Edit PDF: Merge -->
+  <div class="mz-panel" id="panel-edit-merge" style="display:none;">
+    <a class="mz-back-link" href="#" data-target="panel-edit-menu">&larr; Back</a>
+    <div class="mz-card">
+      <h2>Merge</h2>
+      <label for="merge-files">2 or more PDFs, in the order you want them combined</label>
+      <input type="file" id="merge-files" accept=".pdf" multiple>
+      <button id="merge-btn" style="margin-top:0.75rem;">Merge</button>
+      <p class="mz-status" id="merge-status" style="display:none;"></p>
+      <p class="mz-error" id="merge-error" style="display:none;"></p>
+    </div>
+  </div>
+
+  <!-- Edit PDF: Split -->
+  <div class="mz-panel" id="panel-edit-split" style="display:none;">
+    <a class="mz-back-link" href="#" data-target="panel-edit-menu">&larr; Back</a>
+    <div class="mz-card">
+      <h2>Split</h2>
+      <label for="split-file">PDF file</label>
+      <input type="file" id="split-file" accept=".pdf">
+      <label for="split-start">Start page (0-indexed)</label>
+      <input type="number" id="split-start" min="0" value="0">
+      <label for="split-end">End page (0-indexed, inclusive)</label>
+      <input type="number" id="split-end" min="0" value="0">
+      <button id="split-btn" style="margin-top:0.75rem;">Split</button>
+      <p class="mz-status" id="split-status" style="display:none;"></p>
+      <p class="mz-error" id="split-error" style="display:none;"></p>
+    </div>
+  </div>
+
+  <!-- Edit PDF: Rotate -->
+  <div class="mz-panel" id="panel-edit-rotate" style="display:none;">
+    <a class="mz-back-link" href="#" data-target="panel-edit-menu">&larr; Back</a>
+    <div class="mz-card">
+      <h2>Rotate</h2>
+      <label for="rotate-file">PDF file</label>
+      <input type="file" id="rotate-file" accept=".pdf">
+      <label for="rotate-pages">Pages — "all" or comma-separated 0-indexed page numbers (e.g. 0,2)</label>
+      <input type="text" id="rotate-pages" value="all">
+      <label for="rotate-angle">Angle (multiple of 90)</label>
+      <input type="number" id="rotate-angle" step="90" value="90">
+      <button id="rotate-btn" style="margin-top:0.75rem;">Rotate</button>
+      <p class="mz-status" id="rotate-status" style="display:none;"></p>
+      <p class="mz-error" id="rotate-error" style="display:none;"></p>
+    </div>
+  </div>
+
+  <!-- Edit PDF: Watermark -->
+  <div class="mz-panel" id="panel-edit-watermark" style="display:none;">
+    <a class="mz-back-link" href="#" data-target="panel-edit-menu">&larr; Back</a>
+    <div class="mz-card">
+      <h2>Watermark</h2>
+      <label for="watermark-file">PDF file</label>
+      <input type="file" id="watermark-file" accept=".pdf">
+      <label for="watermark-text">Watermark text</label>
+      <input type="text" id="watermark-text" value="CONFIDENTIAL">
+      <button id="watermark-btn" style="margin-top:0.75rem;">Add watermark</button>
+      <p class="mz-status" id="watermark-status" style="display:none;"></p>
+      <p class="mz-error" id="watermark-error" style="display:none;"></p>
+    </div>
+  </div>
+
+  <!-- Edit PDF: Password -->
+  <div class="mz-panel" id="panel-edit-password" style="display:none;">
+    <a class="mz-back-link" href="#" data-target="panel-edit-menu">&larr; Back</a>
+    <div class="mz-card">
+      <h2>Password-protect</h2>
+      <label for="password-file">PDF file</label>
+      <input type="file" id="password-file" accept=".pdf">
+      <label for="password-user">Password required to open the file</label>
+      <input type="password" id="password-user">
+      <button id="password-btn" style="margin-top:0.75rem;">Add password</button>
+      <p class="mz-status" id="password-status" style="display:none;"></p>
+      <p class="mz-error" id="password-error" style="display:none;"></p>
+    </div>
+  </div>
+
+  <!-- Edit PDF: Compress -->
+  <div class="mz-panel" id="panel-edit-compress" style="display:none;">
+    <a class="mz-back-link" href="#" data-target="panel-edit-menu">&larr; Back</a>
+    <div class="mz-card">
+      <h2>Compress</h2>
+      <label for="compress-file">PDF file</label>
+      <input type="file" id="compress-file" accept=".pdf">
+      <button id="compress-btn" style="margin-top:0.75rem;">Compress</button>
+      <p class="mz-status" id="compress-status" style="display:none;"></p>
+      <p class="mz-error" id="compress-error" style="display:none;"></p>
+    </div>
+  </div>
+
+  <!-- Edit PDF: Signature -->
+  <div class="mz-panel" id="panel-edit-signature" style="display:none;">
+    <a class="mz-back-link" href="#" data-target="panel-edit-menu">&larr; Back</a>
+    <div class="mz-card">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <h2 style="margin:0;">Add signature</h2>
+        <button id="signature-reset-btn">Reset</button>
+      </div>
+      <p style="font-size:13px; color:var(--text-muted);">
+        The background is automatically removed, so only the signature itself is placed on the
+        page. For best results: sign on a plain, evenly lit sheet of paper (no patterns or heavy
+        shadows), photographed straight-on, with the ink clearly darker than the paper.
+      </p>
+      <label for="signature-file">PDF file</label>
+      <input type="file" id="signature-file" accept=".pdf">
+      <label for="signature-page">Page (0-indexed)</label>
+      <input type="number" id="signature-page" min="0" value="0">
+      <button id="signature-preview-btn" style="margin-top:0.75rem;">Load page preview</button>
+      <p class="mz-error" id="signature-preview-error" style="display:none;"></p>
+
+      <div id="signature-preview-wrap" style="display:none; margin-top:0.9rem;">
+        <p class="mz-status">Click a spot on the page below to place the signature there, or click and drag to size the box yourself.</p>
+        <div id="signature-preview-stage" style="position:relative; display:inline-block; cursor:crosshair; max-width:100%;">
+          <img id="signature-preview-img" style="display:block; max-width:100%; height:auto; border-radius:var(--radius-sm); border:1px solid var(--border);">
+          <div id="signature-drag-box" style="position:absolute; border:2px solid var(--accent); background:rgba(14,124,102,0.15); display:none; pointer-events:none;">
+            <div id="signature-resize-handle" style="position:absolute; right:-6px; bottom:-6px; width:14px; height:14px; border-radius:50%; background:var(--accent); border:2px solid var(--surface); cursor:nwse-resize; pointer-events:auto;"></div>
+          </div>
+        </div>
+        <p style="font-size:12px; color:var(--text-muted); margin:0.4rem 0 0;">Drag the dot at the corner of the box to resize it.</p>
+      </div>
+
+      <label for="signature-rect" style="margin-top:0.9rem;">Placement on the page — x0,y0,x1,y1 (points from the top-left)</label>
+      <input type="text" id="signature-rect" value="50,700,200,750">
+
+      <label for="signature-darkness">Signature darkness</label>
+      <div style="display:flex; align-items:center; gap:10px;">
+        <input type="range" id="signature-darkness" min="0.4" max="2.5" step="0.1" value="1.0" style="max-width:none; flex:1;">
+        <span id="signature-darkness-value" style="font-size:13px; color:var(--text-secondary); min-width:64px;">Normal</span>
+      </div>
+      <p style="font-size:12px; color:var(--text-muted); margin:0.3rem 0 0;">
+        Increase if a faint signature isn't fully showing up; decrease if it comes out too heavy or blotchy.
+      </p>
+
+      <label for="signature-image">Signature image (PNG/JPG)</label>
+      <input type="file" id="signature-image" accept="image/*">
+      <button id="signature-btn" style="margin-top:0.75rem;">Add signature</button>
+      <p class="mz-status" id="signature-status" style="display:none;"></p>
+      <p class="mz-error" id="signature-error" style="display:none;"></p>
+    </div>
+  </div>
+</div>
+<script>
+mzRequireAuth();
+
+// Simple drill-down navigation: exactly one .mz-panel visible at a time.
+// Any element with data-target="panel-id" (a feature-card or a back-link)
+// switches to that panel — no history/routing, just show/hide.
+function showPanel(id) {
+  document.querySelectorAll(".mz-panel").forEach(el => el.style.display = "none");
+  document.getElementById(id).style.display = "block";
+}
+document.querySelectorAll("[data-target]").forEach(el => {
+  el.addEventListener("click", (e) => {
+    e.preventDefault();
+    showPanel(el.dataset.target);
+  });
+});
+
+function downloadBlob(blob, filename) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// Shared by every operation below: POST formData to a PDF Editor/Converter
+// endpoint, download the returned file on success, show the real backend
+// error message on failure.
+async function runFileOperation(url, formData, prefix, downloadName) {
+  const statusEl = document.getElementById(prefix + "-status");
+  const errorEl = document.getElementById(prefix + "-error");
+  errorEl.style.display = "none";
+  statusEl.textContent = "Working…";
+  statusEl.style.display = "block";
+
+  try {
+    const response = await mzFetch(url, { method: "POST", body: formData });
+    if (!response.ok) {
+      errorEl.textContent = await mzErrorDetail(response);
+      errorEl.style.display = "block";
+      statusEl.style.display = "none";
+      return;
+    }
+    const blob = await response.blob();
+    downloadBlob(blob, downloadName);
+    statusEl.textContent = "Done — download started.";
+  } catch (err) {
+    errorEl.textContent = "Could not reach the server. Is it running?";
+    errorEl.style.display = "block";
+    statusEl.style.display = "none";
+  }
+}
+
+// --- Convert ------------------------------------------------------------
+
+document.getElementById("convert-btn").addEventListener("click", async () => {
+  const fileInput = document.getElementById("convert-file");
+  if (!fileInput.files[0]) {
+    document.getElementById("convert-error").textContent = "Choose a file first.";
+    document.getElementById("convert-error").style.display = "block";
+    return;
+  }
+  const formData = new FormData();
+  formData.append("file", fileInput.files[0]);
+  const originalName = fileInput.files[0].name.replace(/\.[^.]+$/, "");
+  await runFileOperation(MIZAN_CONFIG.converter + "/api/convert", formData, "convert", originalName + ".pdf");
+});
+
+// --- Merge ----------------------------------------------------------------
+
+document.getElementById("merge-btn").addEventListener("click", async () => {
+  const files = document.getElementById("merge-files").files;
+  if (files.length < 2) {
+    document.getElementById("merge-error").textContent = "Choose at least 2 PDFs.";
+    document.getElementById("merge-error").style.display = "block";
+    return;
+  }
+  const formData = new FormData();
+  for (const f of files) formData.append("files", f);
+  await runFileOperation(MIZAN_CONFIG.editor + "/api/pdf-editor/merge", formData, "merge", "merged.pdf");
+});
+
+// --- Split ------------------------------------------------------------------
+
+document.getElementById("split-btn").addEventListener("click", async () => {
+  const fileInput = document.getElementById("split-file");
+  if (!fileInput.files[0]) {
+    document.getElementById("split-error").textContent = "Choose a file first.";
+    document.getElementById("split-error").style.display = "block";
+    return;
+  }
+  const formData = new FormData();
+  formData.append("file", fileInput.files[0]);
+  formData.append("start_page", document.getElementById("split-start").value);
+  formData.append("end_page", document.getElementById("split-end").value);
+  await runFileOperation(MIZAN_CONFIG.editor + "/api/pdf-editor/split", formData, "split", "split.pdf");
+});
+
+// --- Rotate -------------------------------------------------------------------
+
+document.getElementById("rotate-btn").addEventListener("click", async () => {
+  const fileInput = document.getElementById("rotate-file");
+  if (!fileInput.files[0]) {
+    document.getElementById("rotate-error").textContent = "Choose a file first.";
+    document.getElementById("rotate-error").style.display = "block";
+    return;
+  }
+  const rawPages = document.getElementById("rotate-pages").value.trim();
+  const pages = rawPages === "all" ? "all" : JSON.stringify(rawPages.split(",").map(p => parseInt(p.trim(), 10)));
+
+  const formData = new FormData();
+  formData.append("file", fileInput.files[0]);
+  formData.append("pages", pages);
+  formData.append("angle", document.getElementById("rotate-angle").value);
+  await runFileOperation(MIZAN_CONFIG.editor + "/api/pdf-editor/rotate", formData, "rotate", "rotated.pdf");
+});
+
+// --- Watermark -----------------------------------------------------------------
+
+document.getElementById("watermark-btn").addEventListener("click", async () => {
+  const fileInput = document.getElementById("watermark-file");
+  if (!fileInput.files[0]) {
+    document.getElementById("watermark-error").textContent = "Choose a file first.";
+    document.getElementById("watermark-error").style.display = "block";
+    return;
+  }
+  const formData = new FormData();
+  formData.append("file", fileInput.files[0]);
+  formData.append("text", document.getElementById("watermark-text").value);
+  await runFileOperation(MIZAN_CONFIG.editor + "/api/pdf-editor/watermark", formData, "watermark", "watermarked.pdf");
+});
+
+// --- Password ------------------------------------------------------------------
+
+document.getElementById("password-btn").addEventListener("click", async () => {
+  const fileInput = document.getElementById("password-file");
+  const password = document.getElementById("password-user").value;
+  if (!fileInput.files[0] || !password) {
+    document.getElementById("password-error").textContent = "Choose a file and a password.";
+    document.getElementById("password-error").style.display = "block";
+    return;
+  }
+  const formData = new FormData();
+  formData.append("file", fileInput.files[0]);
+  formData.append("user_password", password);
+  await runFileOperation(MIZAN_CONFIG.editor + "/api/pdf-editor/password", formData, "password", "protected.pdf");
+});
+
+// --- Compress ------------------------------------------------------------------
+
+document.getElementById("compress-btn").addEventListener("click", async () => {
+  const fileInput = document.getElementById("compress-file");
+  if (!fileInput.files[0]) {
+    document.getElementById("compress-error").textContent = "Choose a file first.";
+    document.getElementById("compress-error").style.display = "block";
+    return;
+  }
+  const formData = new FormData();
+  formData.append("file", fileInput.files[0]);
+  await runFileOperation(MIZAN_CONFIG.editor + "/api/pdf-editor/compress", formData, "compress", "compressed.pdf");
+});
+
+// --- Signature: page preview + drag-to-draw ---------------------------------
+
+let sigPageWidthPoints = null;
+let sigPageHeightPoints = null;
+
+document.getElementById("signature-preview-btn").addEventListener("click", async () => {
+  const fileInput = document.getElementById("signature-file");
+  const errorEl = document.getElementById("signature-preview-error");
+  errorEl.style.display = "none";
+
+  if (!fileInput.files[0]) {
+    errorEl.textContent = "Choose a PDF file first.";
+    errorEl.style.display = "block";
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append("file", fileInput.files[0]);
+  formData.append("page", document.getElementById("signature-page").value);
+
+  try {
+    const response = await mzFetch(MIZAN_CONFIG.editor + "/api/pdf-editor/page-preview", {
+      method: "POST", body: formData,
+    });
+    if (!response.ok) {
+      errorEl.textContent = await mzErrorDetail(response);
+      errorEl.style.display = "block";
+      return;
+    }
+    sigPageWidthPoints = parseFloat(response.headers.get("X-Page-Width-Points"));
+    sigPageHeightPoints = parseFloat(response.headers.get("X-Page-Height-Points"));
+    const blob = await response.blob();
+    document.getElementById("signature-preview-img").src = URL.createObjectURL(blob);
+    document.getElementById("signature-preview-wrap").style.display = "block";
+  } catch (err) {
+    errorEl.textContent = "Could not reach the server. Is it running?";
+    errorEl.style.display = "block";
+  }
+});
+
+// Click-and-drag on the rendered page image draws the signature rect
+// visually — converted from on-screen pixels into PDF point coordinates
+// using the page's real size (from the headers above) relative to the
+// image's displayed size. No PDF-rendering capability needed client-side;
+// the backend already did that (page-preview endpoint) — this is just
+// coordinate math on a plain <img>. The box can also be resized afterward
+// via the small handle at its corner (sigResizeHandle below).
+const sigStage = document.getElementById("signature-preview-stage");
+const sigDragBox = document.getElementById("signature-drag-box");
+const sigResizeHandle = document.getElementById("signature-resize-handle");
+let sigDragStart = null;
+let sigBoxPx = null; // {x0, y0, x1, y1} in stage-relative pixels — current box, if any
+
+function drawSigBox() {
+  sigDragBox.style.left = sigBoxPx.x0 + "px";
+  sigDragBox.style.top = sigBoxPx.y0 + "px";
+  sigDragBox.style.width = (sigBoxPx.x1 - sigBoxPx.x0) + "px";
+  sigDragBox.style.height = (sigBoxPx.y1 - sigBoxPx.y0) + "px";
+  sigDragBox.style.display = "block";
+}
+
+function commitSigBox() {
+  if (!sigPageWidthPoints) return;
+  const rect = sigStage.getBoundingClientRect();
+  const scaleX = sigPageWidthPoints / rect.width;
+  const scaleY = sigPageHeightPoints / rect.height;
+  const x0 = Math.round(sigBoxPx.x0 * scaleX);
+  const y0 = Math.round(sigBoxPx.y0 * scaleY);
+  const x1 = Math.round(sigBoxPx.x1 * scaleX);
+  const y1 = Math.round(sigBoxPx.y1 * scaleY);
+  document.getElementById("signature-rect").value = `${x0},${y0},${x1},${y1}`;
+}
+
+sigStage.addEventListener("mousedown", (e) => {
+  if (e.target === sigResizeHandle) return; // handled separately below
+  const rect = sigStage.getBoundingClientRect();
+  sigDragStart = { x: e.clientX - rect.left, y: e.clientY - rect.top };
+  sigBoxPx = { x0: sigDragStart.x, y0: sigDragStart.y, x1: sigDragStart.x, y1: sigDragStart.y };
+  drawSigBox();
+});
+
+document.addEventListener("mousemove", (e) => {
+  if (!sigDragStart) return;
+  const rect = sigStage.getBoundingClientRect();
+  const x = Math.max(0, Math.min(e.clientX - rect.left, rect.width));
+  const y = Math.max(0, Math.min(e.clientY - rect.top, rect.height));
+  sigBoxPx = {
+    x0: Math.min(x, sigDragStart.x), y0: Math.min(y, sigDragStart.y),
+    x1: Math.max(x, sigDragStart.x), y1: Math.max(y, sigDragStart.y),
+  };
+  drawSigBox();
+});
+
+document.addEventListener("mouseup", (e) => {
+  if (!sigDragStart) return;
+  sigDragStart = null;
+
+  // A plain click (no real drag) places a default-sized box centered on
+  // that point, rather than requiring the user to drag out an exact
+  // rectangle every time — 150x50 points, same as the field's own default.
+  if (sigPageWidthPoints && sigBoxPx.x1 - sigBoxPx.x0 < 3 && sigBoxPx.y1 - sigBoxPx.y0 < 3) {
+    const rect = sigStage.getBoundingClientRect();
+    const cx = sigBoxPx.x0, cy = sigBoxPx.y0;
+    const w = (150 / sigPageWidthPoints) * rect.width;
+    const h = (50 / sigPageHeightPoints) * rect.height;
+    const x0 = Math.max(0, cx - w / 2);
+    const y0 = Math.max(0, cy - h / 2);
+    sigBoxPx = { x0, y0, x1: Math.min(rect.width, x0 + w), y1: Math.min(rect.height, y0 + h) };
+    drawSigBox();
+  }
+
+  commitSigBox();
+});
+
+// Resize handle — drags just the bottom-right corner, keeping the
+// top-left anchored, instead of requiring a fresh drag from scratch.
+sigResizeHandle.addEventListener("mousedown", (e) => {
+  e.stopPropagation();
+  e.preventDefault();
+  const rect = sigStage.getBoundingClientRect();
+
+  function onMove(moveEvent) {
+    const x = Math.max(sigBoxPx.x0 + 5, Math.min(moveEvent.clientX - rect.left, rect.width));
+    const y = Math.max(sigBoxPx.y0 + 5, Math.min(moveEvent.clientY - rect.top, rect.height));
+    sigBoxPx = { ...sigBoxPx, x1: x, y1: y };
+    drawSigBox();
+  }
+  function onUp() {
+    document.removeEventListener("mousemove", onMove);
+    document.removeEventListener("mouseup", onUp);
+    commitSigBox();
+  }
+  document.addEventListener("mousemove", onMove);
+  document.addEventListener("mouseup", onUp);
+});
+
+// --- Signature darkness slider ------------------------------------------------
+
+const sigDarknessLabels = [
+  [0.7, "Much lighter"], [0.9, "Lighter"], [1.1, "Normal"], [1.4, "Darker"], [Infinity, "Much darker"],
+];
+document.getElementById("signature-darkness").addEventListener("input", (e) => {
+  const v = parseFloat(e.target.value);
+  const label = sigDarknessLabels.find(([max]) => v <= max)[1];
+  document.getElementById("signature-darkness-value").textContent = label;
+});
+
+// --- Reset ------------------------------------------------------------------
+
+document.getElementById("signature-reset-btn").addEventListener("click", () => {
+  document.getElementById("signature-file").value = "";
+  document.getElementById("signature-image").value = "";
+  document.getElementById("signature-page").value = "0";
+  document.getElementById("signature-rect").value = "50,700,200,750";
+  document.getElementById("signature-darkness").value = "1.0";
+  document.getElementById("signature-darkness-value").textContent = "Normal";
+
+  document.getElementById("signature-preview-wrap").style.display = "none";
+  document.getElementById("signature-preview-img").src = "";
+  sigDragBox.style.display = "none";
+  sigBoxPx = null;
+  sigPageWidthPoints = null;
+  sigPageHeightPoints = null;
+
+  for (const id of ["signature-preview-error", "signature-status", "signature-error"]) {
+    document.getElementById(id).style.display = "none";
+  }
+});
+
+// --- Signature -----------------------------------------------------------------
+
+document.getElementById("signature-btn").addEventListener("click", async () => {
+  const fileInput = document.getElementById("signature-file");
+  const imageInput = document.getElementById("signature-image");
+  if (!fileInput.files[0] || !imageInput.files[0]) {
+    document.getElementById("signature-error").textContent = "Choose both a PDF and a signature image.";
+    document.getElementById("signature-error").style.display = "block";
+    return;
+  }
+  const rectParts = document.getElementById("signature-rect").value.split(",").map(n => parseFloat(n.trim()));
+  const formData = new FormData();
+  formData.append("file", fileInput.files[0]);
+  formData.append("signature_image", imageInput.files[0]);
+  formData.append("page", document.getElementById("signature-page").value);
+  formData.append("rect", JSON.stringify(rectParts));
+  formData.append("darkness", document.getElementById("signature-darkness").value);
+  await runFileOperation(MIZAN_CONFIG.editor + "/api/pdf-editor/signature", formData, "signature", "signed.pdf");
+});
+</script>
+</body>
+</html>

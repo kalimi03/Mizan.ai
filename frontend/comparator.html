@@ -1,0 +1,610 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Mizan.ai — Compare documents</title>
+<link rel="stylesheet" href="style.css">
+<script src="config.js"></script>
+<script src="common.js"></script>
+</head>
+<body>
+<div class="mz-shell">
+  <a class="mz-back-link" href="app.html">&larr; Back to home</a>
+  <h2>Compare documents</h2>
+
+  <!-- Step 1: upload -->
+  <div class="mz-card" id="step-upload">
+    <h3>1. Upload both documents</h3>
+    <label for="sap-export">Our records (accounting export)</label>
+    <input type="file" id="sap-export">
+    <label for="second-document">Their statement (bank statement, vendor statement, etc.)</label>
+    <input type="file" id="second-document">
+    <label for="date-proximity">Date proximity (days) — leave blank for default</label>
+    <input type="number" id="date-proximity" min="0">
+    <label for="amount-tolerance">Amount tolerance — leave blank for default</label>
+    <input type="number" id="amount-tolerance" min="0" step="0.01">
+    <div style="margin-top:1rem; display:flex; gap:8px;">
+      <button id="reconcile-btn">Reconcile</button>
+      <button id="comparator-reset-btn">Reset</button>
+    </div>
+    <p class="mz-status" id="upload-status" style="display:none;"></p>
+    <p class="mz-error" id="upload-error" style="display:none;"></p>
+  </div>
+
+  <!-- Results + review — opens as a popup once Reconcile returns; the main
+       page underneath (upload + report steps) never changes shape. -->
+  <dialog class="mz-card" id="results-modal">
+    <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+      <h3 style="margin:0;">Matched</h3>
+      <button id="results-modal-close" class="mz-secondary" style="padding:2px 10px;" aria-label="Close" title="Close">&times;</button>
+    </div>
+    <details id="mapping-details" style="margin:0.25rem 0 1rem;">
+      <summary style="cursor:pointer; font-size:13px; color:var(--text-muted);">We mapped your columns — tap to check</summary>
+      <div id="mapping-content" style="margin-top:0.5rem;"></div>
+    </details>
+    <table class="mz-table">
+      <thead><tr><th>Our Records</th><th>Their Statement</th><th>Match type</th></tr></thead>
+      <tbody id="matched-body"></tbody>
+    </table>
+
+    <!-- Distinct shaded panel, not just a heading + gap, so this reads as
+         its own section (the one needing action) rather than a continuation
+         of "Matched" above it — easy to misread as one block when Matched
+         is empty, which is common (most reconciliations have SOME
+         exceptions). -->
+    <div style="background:var(--surface-2); border:1px solid var(--border); border-radius:var(--radius-sm); padding:0.85rem 1rem; margin-top:1.25rem;">
+      <h3 style="margin:0 0 0.5rem;">Needs review</h3>
+      <div id="review-list"></div>
+    </div>
+
+    <button id="confirm-btn" style="margin-top:1rem;">Confirm &amp; generate</button>
+    <p class="mz-error" id="confirm-error" style="display:none;"></p>
+  </dialog>
+
+  <!-- Step 2: report -->
+  <div class="mz-card" id="step-report" style="display:none; margin-top:1rem;">
+    <h3>2. Download report</h3>
+    <p id="narration" style="margin:0 0 0.75rem; color:var(--text-muted); font-size:14px; display:none;"></p>
+
+    <div style="margin-bottom:1rem; padding-bottom:1rem; border-bottom:1px solid var(--border);">
+      <p class="mz-status" style="margin:0 0 0.5rem;">Optional: some partial or installment payments don't share a date, description, or reference with what they're settling — this does one more pass looking for amount-only combinations among what's still open.</p>
+      <button id="check-leftover-groupings-btn">Check for more possible groupings</button>
+      <p class="mz-status" id="leftover-groupings-status" style="display:none; margin-top:0.5rem;"></p>
+    </div>
+
+    <label for="report-format">Format</label>
+    <select id="report-format">
+      <option value="xlsx">XLSX</option>
+      <option value="pdf">PDF</option>
+      <option value="docx">DOCX</option>
+    </select>
+    <button id="report-btn" style="margin-top:1rem;">Download report</button>
+    <p class="mz-error" id="report-error" style="display:none;"></p>
+  </div>
+</div>
+
+<script>
+mzRequireAuth();
+
+let matched = [];
+let reviewItems = [];
+let narration = null;
+
+function show(id) { document.getElementById(id).style.display = "block"; }
+
+// Disables a button and swaps its label for the duration of an action —
+// an honest "still working" signal (not a fake staged-progress animation,
+// since these are plain single request/response calls with no way for the
+// frontend to know which "stage" the backend is actually in).
+async function withBusyLabel(btn, busyText, fn) {
+  const original = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = busyText;
+  try {
+    await fn();
+  } finally {
+    btn.disabled = false;
+    btn.textContent = original;
+  }
+}
+
+document.getElementById("comparator-reset-btn").addEventListener("click", () => {
+  document.getElementById("sap-export").value = "";
+  document.getElementById("second-document").value = "";
+  document.getElementById("date-proximity").value = "";
+  document.getElementById("amount-tolerance").value = "";
+
+  matched = [];
+  reviewItems = [];
+  narration = null;
+
+  const resultsModal = document.getElementById("results-modal");
+  if (resultsModal.open) resultsModal.close();
+  document.getElementById("step-report").style.display = "none";
+  document.getElementById("matched-body").innerHTML = "";
+  document.getElementById("review-list").innerHTML = "";
+  document.getElementById("narration").style.display = "none";
+  document.getElementById("mapping-content").innerHTML = "";
+  document.getElementById("mapping-details").open = false;
+  document.getElementById("leftover-groupings-status").style.display = "none";
+
+  for (const id of ["upload-status", "upload-error", "confirm-error", "report-error"]) {
+    document.getElementById(id).style.display = "none";
+  }
+});
+
+function formatRow(row) {
+  if (!row) return "—";
+  const parts = [row.reference || "—", row.date || "—", row.amount != null ? row.amount : "—", row.description || "—"];
+  return parts.join(" / ");
+}
+
+const REVIEW_KIND_LABELS = {
+  fuzzy_match: "Possible match",
+  ambiguous: "Multiple candidates",
+  unmatched: "Unmatched",
+  amount_mismatch: "Amount mismatch",
+  group_match: "Group match (consolidated)",
+  sum_match: "Possible grouping (amount only)",
+};
+
+// Real-world exports name their columns very differently from one company/
+// bank/ERP to the next — this can't be hardcoded, so the backend guesses via
+// a synonym list and returns what it found (features/comparator/normalize.py).
+// Showing the guess here, rather than trusting it silently, is the actual
+// answer to "how do we handle unknown column names": the user gets a chance
+// to notice a wrong guess before trusting the reconciliation results below.
+// Collapsed by default (see the <details> it renders into) — useful to have,
+// not something that should compete with the actual review items for space.
+function mappingFieldRows(m) {
+  const col = (name) => name ? `"${name}"` : "not found";
+  const amountFound = m.amount_column
+    ? col(m.amount_column)
+    : (m.debit_column || m.credit_column)
+      ? `Debit ${col(m.debit_column)} / Credit ${col(m.credit_column)}`
+      : "not found";
+  return [
+    ["Reference", col(m.reference_column)],
+    ["Date", col(m.date_column)],
+    ["Amount", amountFound],
+    ["Description", col(m.description_column)],
+  ];
+}
+
+function mappingTable(title, mapping) {
+  const rows = mappingFieldRows(mapping)
+    .map(([field, found]) => `<tr><td>${field}</td><td>${found}</td></tr>`)
+    .join("");
+  return `
+    <p style="font-weight:600; margin:0.5rem 0 4px; font-size:13px;">${title}</p>
+    <table class="mz-table" style="margin-bottom:0.5rem;">
+      <thead><tr><th>Our field</th><th>Found as</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+}
+
+function renderColumnMapping(mappingA, mappingB) {
+  document.getElementById("mapping-content").innerHTML =
+    `<p style="font-size:12px; color:var(--text-muted); margin:0;">Best-effort guess — check this matches your file before trusting the results below.</p>` +
+    mappingTable("Our Records", mappingA) +
+    mappingTable("Their Statement", mappingB);
+}
+
+// Closing the popup without confirming just dismisses it — the uploaded
+// files are still selected, so re-clicking Reconcile re-runs the match
+// without needing to re-upload anything.
+const resultsModalEl = document.getElementById("results-modal");
+document.getElementById("results-modal-close").addEventListener("click", () => resultsModalEl.close());
+resultsModalEl.addEventListener("click", (e) => {
+  if (e.target === resultsModalEl) resultsModalEl.close(); // click on the backdrop, not inner content
+});
+
+// --- Step 1: reconcile ------------------------------------------------------
+
+document.getElementById("reconcile-btn").addEventListener("click", async (e) => {
+  const statusEl = document.getElementById("upload-status");
+  const errorEl = document.getElementById("upload-error");
+  errorEl.style.display = "none";
+
+  const sapFile = document.getElementById("sap-export").files[0];
+  const secondFile = document.getElementById("second-document").files[0];
+  if (!sapFile || !secondFile) {
+    errorEl.textContent = "Choose both files.";
+    errorEl.style.display = "block";
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append("sap_export", sapFile);
+  formData.append("second_document", secondFile);
+  const dateProximity = document.getElementById("date-proximity").value;
+  const amountTolerance = document.getElementById("amount-tolerance").value;
+  if (dateProximity) formData.append("date_proximity_days", dateProximity);
+  if (amountTolerance) formData.append("amount_tolerance", amountTolerance);
+
+  statusEl.textContent = "Extracting and matching…";
+  statusEl.style.display = "block";
+
+  await withBusyLabel(e.target, "Matching…", async () => {
+  try {
+    const response = await mzFetch(MIZAN_CONFIG.comparator + "/api/comparator/reconcile", {
+      method: "POST", body: formData,
+    });
+    if (!response.ok) {
+      errorEl.textContent = await mzErrorDetail(response);
+      errorEl.style.display = "block";
+      statusEl.style.display = "none";
+      return;
+    }
+    const data = await response.json();
+    matched = data.matched;
+    reviewItems = data.needs_review;
+    statusEl.textContent = `Matched ${matched.length}, needs review: ${reviewItems.length} ` +
+      `(date proximity: ${data.date_proximity_days} day(s), amount tolerance: ${data.amount_tolerance}).`;
+    renderColumnMapping(data.sap_export_column_mapping, data.second_document_column_mapping);
+    renderMatched();
+    renderReviewItems();
+    document.getElementById("results-modal").showModal();
+  } catch (err) {
+    errorEl.textContent = "Could not reach the server. Is it running?";
+    errorEl.style.display = "block";
+    statusEl.style.display = "none";
+  }
+  });
+});
+
+function renderMatched() {
+  const tbody = document.getElementById("matched-body");
+  tbody.innerHTML = "";
+  for (const pair of matched) {
+    const tr = document.createElement("tr");
+    tr.innerHTML = "<td></td><td></td><td></td>";
+    tr.children[0].textContent = formatRow(pair.row_a);
+    tr.children[1].textContent = formatRow(pair.row_b);
+    tr.children[2].textContent = pair.match_type;
+    tbody.appendChild(tr);
+  }
+}
+
+// Renders ONE combined card for a group of ambiguous items that all
+// contest the SAME single candidate (e.g. PMT-8801 and PMT-8802 both
+// pointing at the same bank receipt) — "which of these N is the real
+// match?" is genuinely one decision, not N separate ones. Picking an
+// option confirms that item against the candidate and dismisses every
+// other item in the group; native radio-button semantics guarantee only
+// one can be selected, so there's no need for the manual cross-card
+// unchecking a plain-checkbox-per-card version would require.
+function renderContestedGroupCard(card, groupIndexes) {
+  const candidate = reviewItems[groupIndexes[0]].candidates[0];
+  const groupName = "contested-group-" + groupIndexes.join("-");
+  const optionsHtml = groupIndexes.map((i) => `
+    <label style="display:flex; align-items:center; gap:6px; font-weight:normal;">
+      <input type="radio" name="${groupName}" value="${i}"> ${formatRow(reviewItems[i].row_a)}
+    </label>`).join("");
+
+  card.innerHTML = `
+    <p style="font-size:12px; color:var(--text-muted); margin:0 0 6px;">Multiple candidates</p>
+    <p><strong>Their statement:</strong> ${formatRow(candidate)}</p>
+    <p style="color:#c0392b; font-weight:600;">${groupIndexes.length} of our records could plausibly be this one — which is it?</p>
+    ${optionsHtml}
+    <label style="display:flex; align-items:center; gap:6px; font-weight:normal;">
+      <input type="radio" name="${groupName}" value="none"> None of these — dismiss all
+    </label>
+    <label style="display:flex; align-items:center; gap:6px; font-weight:normal;">
+      <input type="radio" name="${groupName}" value="unresolved"> Not sure yet — leave unresolved, follow up later
+    </label>
+    <label>Explanation (optional)</label>
+    <input type="text" class="explanation-input">
+  `;
+
+  card.querySelectorAll(`input[name="${groupName}"]`).forEach((radio) => {
+    radio.addEventListener("change", (e) => {
+      const picked = e.target.value;
+      const explanation = card.querySelector(".explanation-input").value || null;
+      groupIndexes.forEach((i) => {
+        if (picked === "unresolved") {
+          // Deliberately deferred, not decided either way -- same "neither
+          // confirmed nor dismissed" state matches how every other review
+          // kind's Decision dropdown already represents "not yet decided"
+          // (report.py's summary counts this as Unresolved, and it never
+          // trips the /confirm validation, which only checks confirmed
+          // ambiguous items).
+          reviewItems[i].decision = null;
+          reviewItems[i].selected_candidate_id = null;
+        } else if (String(i) === picked) {
+          reviewItems[i].decision = "confirmed";
+          reviewItems[i].selected_candidate_id = candidate.row_id;
+        } else {
+          reviewItems[i].decision = "dismissed";
+          reviewItems[i].selected_candidate_id = null;
+        }
+        reviewItems[i].explanation = explanation;
+      });
+    });
+  });
+  card.querySelector(".explanation-input").addEventListener("input", (e) => {
+    groupIndexes.forEach((i) => { reviewItems[i].explanation = e.target.value || null; });
+  });
+}
+
+// indexesToRender: optional array of indexes into the global reviewItems
+// array to display this pass; defaults to all of them. Used by the
+// "Check for more possible groupings" button to show ONLY the newly-found
+// sum_match items in a second review round, without re-showing (and
+// visually resetting) cards from the first round that are already decided
+// — the underlying reviewItems data for those is untouched either way.
+function renderReviewItems(indexesToRender) {
+  const container = document.getElementById("review-list");
+  container.innerHTML = "";
+  const indexes = indexesToRender || reviewItems.map((_, i) => i);
+  if (!indexes.length) {
+    container.innerHTML = '<p class="mz-status">Nothing needs review.</p>';
+    return;
+  }
+
+  // Group single-contested ambiguous items by the one candidate they
+  // share — see renderContestedGroupCard above. A group of size 1 (a
+  // candidate no one else is contesting) still renders as a normal single
+  // card below, unchanged. Scoped to the indexes being rendered this pass
+  // — round-1 items are never regrouped when only round-2 items are shown.
+  const contestedGroups = {};
+  indexes.forEach((idx) => {
+    const item = reviewItems[idx];
+    if (item.kind === "ambiguous" && item.candidates.length === 1) {
+      const cid = item.candidates[0].row_id;
+      (contestedGroups[cid] = contestedGroups[cid] || []).push(idx);
+    }
+  });
+  const skipIndexes = new Set();
+  Object.values(contestedGroups).forEach((idxs) => {
+    if (idxs.length > 1) idxs.slice(1).forEach((i) => skipIndexes.add(i));
+  });
+
+  indexes.forEach((index) => {
+    const item = reviewItems[index];
+    if (skipIndexes.has(index)) return; // already rendered as part of a combined group card
+
+    const card = document.createElement("div");
+    card.className = "mz-card";
+    card.style.marginTop = "0.6rem";
+    if (item.kind === "sum_match") {
+      // Visually distinct at a glance, not just in the explanatory text —
+      // weaker evidence than every other kind (amount only, no signal).
+      card.style.borderLeft = "4px solid #b7791f";
+    }
+
+    const isGroupPrimary = item.kind === "ambiguous" && item.candidates.length === 1
+      && contestedGroups[item.candidates[0].row_id].length > 1;
+    if (isGroupPrimary) {
+      renderContestedGroupCard(card, contestedGroups[item.candidates[0].row_id]);
+      container.appendChild(card);
+      return;
+    }
+
+    let rowsHtml = "";
+    if (item.kind === "ambiguous") {
+      // Two different reasons land here, and they read differently: this
+      // row_a genuinely has several candidate matches to choose between, OR
+      // (single candidate, no sibling contesting it — the multi-item case
+      // is handled by renderContestedGroupCard above) it's the only item
+      // pointing at that one candidate but still needs an explicit yes/no
+      // since it's not a clean, certain match either way.
+      const singleContested = item.candidates.length === 1;
+      rowsHtml = `<p><strong>Our record:</strong> ${formatRow(item.row_a)}</p>`;
+      if (singleContested) {
+        rowsHtml += `<p style="color:#c0392b; font-weight:600;">This is the only candidate found, but it's not a clean match — confirm it belongs here, or dismiss it:</p>` +
+          `<label style="display:flex; align-items:center; gap:6px; font-weight:normal;">
+            <input type="checkbox" class="single-candidate-check" checked> Yes, this is the match: ${formatRow(item.candidates[0])}
+          </label>`;
+        reviewItems[index].selected_candidate_id = item.candidates[0].row_id;
+      } else {
+        rowsHtml += `<p>Pick the matching candidate:</p>`;
+        item.candidates.forEach((c) => {
+          rowsHtml += `
+            <label style="display:flex; align-items:center; gap:6px; font-weight:normal;">
+              <input type="radio" name="candidate-${index}" value="${c.row_id}"> ${formatRow(c)}
+            </label>`;
+        });
+      }
+    } else if (item.kind === "amount_mismatch") {
+      const diff = (item.row_a.amount != null && item.row_b.amount != null) ? (item.row_a.amount - item.row_b.amount) : null;
+      rowsHtml = `<p><strong>Our record:</strong> ${formatRow(item.row_a)}</p><p><strong>Their statement:</strong> ${formatRow(item.row_b)}</p>`;
+      if (item.possible_vat_gap) {
+        // Diagnostic only -- doesn't change the decision the reviewer still
+        // has to make, just gives them a faster read on WHY it might not be
+        // a real error (see matching.py's _is_vat_gap, ~15% Saudi VAT gap).
+        rowsHtml += `<p style="color:#c0392b; font-weight:600;">This looks like it could be a VAT-inclusive vs. VAT-exclusive recording ` +
+          `difference (≈15% gap) rather than a genuine error — worth checking before treating it as a discrepancy. ` +
+          `Confirm if that explains it, or dismiss/explain if not.</p>`;
+      } else {
+        rowsHtml += `<p style="color:#c0392b; font-weight:600;">Same reference, different amount` +
+          `${diff != null ? ` — differs by ${Math.abs(diff).toFixed(2)}` : ""}. Confirm if this is expected ` +
+          `(e.g. a partial payment) or dismiss/explain.</p>`;
+      }
+    } else if (item.kind === "fuzzy_match") {
+      rowsHtml = `<p><strong>Our record:</strong> ${formatRow(item.row_a)}</p><p><strong>Their statement:</strong> ${formatRow(item.row_b)}</p>`;
+    } else if (item.kind === "group_match" || item.kind === "sum_match") {
+      // Exactly one of row_a/row_b is the single item; item.group holds the
+      // 2-4 rows on the OTHER side whose amounts sum to it. group_match
+      // (Pass 4) found this via a real connecting signal (date proximity,
+      // shared description, sequential reference); sum_match (Pass 5,
+      // manually triggered via "Check for more possible groupings") found
+      // it by amount alone, with no such signal — weaker evidence, so it's
+      // called out distinctly rather than looking identical to group_match.
+      const isSumMatch = item.kind === "sum_match";
+      const groupSide = item.row_b ? "Our records" : "Their statement";
+      const singleSide = item.row_b ? "Their statement" : "Our records";
+      const singleRow = item.row_b || item.row_a;
+      const groupTotal = item.group.reduce((sum, r) => sum + (r.amount != null ? r.amount : 0), 0);
+      const warningColor = isSumMatch ? "#b7791f" : "#c0392b";
+      const explainer = isSumMatch
+        ? `Found by amount alone — no shared date, description, or reference with ${singleSide.toLowerCase()}. Review carefully before confirming; if it doesn't hold up, dismiss it.`
+        : `These ${item.group.length} items plausibly consolidate into this one (matched on date/description, sums line up) — confirm if that's right, or dismiss if it's a coincidence.`;
+      rowsHtml = `<p><strong>${groupSide} (${item.group.length} items, summing to ${groupTotal.toFixed(2)}):</strong></p>` +
+        `<ul style="margin:2px 0 8px; padding-left:20px;">${item.group.map((r) => `<li>${formatRow(r)}</li>`).join("")}</ul>` +
+        `<p><strong>${singleSide}:</strong> ${formatRow(singleRow)}</p>` +
+        `<p style="color:${warningColor}; font-weight:600;">${explainer}</p>`;
+    } else {
+      // unmatched — only one side exists
+      rowsHtml = `<p><strong>Unmatched row:</strong> ${formatRow(item.row_a || item.row_b)} (${item.row_a ? "our records" : "their statement"})</p>`;
+    }
+
+    card.innerHTML = `
+      <p style="font-size:12px; color:var(--text-muted); margin:0 0 6px;">${REVIEW_KIND_LABELS[item.kind] || item.kind}</p>
+      ${rowsHtml}
+      <label>Decision</label>
+      <select class="decision-select">
+        <option value="">— choose —</option>
+        <option value="confirmed">Confirmed match</option>
+        <option value="dismissed">Dismiss — not a match</option>
+      </select>
+      <label>Explanation (optional)</label>
+      <input type="text" class="explanation-input">
+    `;
+
+    card.querySelector(".decision-select").addEventListener("change", (e) => {
+      reviewItems[index].decision = e.target.value || null;
+    });
+    card.querySelector(".explanation-input").addEventListener("input", (e) => {
+      reviewItems[index].explanation = e.target.value || null;
+    });
+    if (item.kind === "ambiguous") {
+      const singleCheck = card.querySelector(".single-candidate-check");
+      if (singleCheck) {
+        // No sibling to cross-check against here — a contested candidate
+        // with more than one interested row_a is handled entirely by
+        // renderContestedGroupCard above instead of reaching this branch.
+        singleCheck.addEventListener("change", (e) => {
+          reviewItems[index].selected_candidate_id = e.target.checked ? item.candidates[0].row_id : null;
+        });
+      } else {
+        card.querySelectorAll(`input[name="candidate-${index}"]`).forEach((radio) => {
+          radio.addEventListener("change", (e) => {
+            reviewItems[index].selected_candidate_id = e.target.value;
+          });
+        });
+      }
+    }
+
+    container.appendChild(card);
+  });
+}
+
+// --- Step 2: confirm ---------------------------------------------------------
+
+document.getElementById("confirm-btn").addEventListener("click", async (e) => {
+  const errorEl = document.getElementById("confirm-error");
+  errorEl.style.display = "none";
+
+  await withBusyLabel(e.target, "Confirming…", async () => {
+  try {
+    const response = await mzFetch(MIZAN_CONFIG.comparator + "/api/comparator/confirm", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ matched, reviewed: reviewItems, language: "en" }),
+    });
+    if (!response.ok) {
+      errorEl.textContent = await mzErrorDetail(response);
+      errorEl.style.display = "block";
+      return;
+    }
+    const data = await response.json();
+    matched = data.matched;
+    reviewItems = data.reviewed;
+    narration = data.narration;
+
+    const narrationEl = document.getElementById("narration");
+    if (narration) {
+      narrationEl.textContent = narration;
+      narrationEl.style.display = "block";
+    }
+    resultsModalEl.close();
+    show("step-report");
+  } catch (err) {
+    errorEl.textContent = "Could not reach the server. Is it running?";
+    errorEl.style.display = "block";
+  }
+  });
+});
+
+// --- Step 2.5 (optional): check for more possible groupings ------------------
+//
+// Only reachable from the report step, which only appears after a full
+// first-round confirm — that's the "person has finished reviewing/resolving
+// everything from the earlier passes" gate, with no extra logic needed
+// beyond where the button lives. Sends the CURRENT matched/reviewItems
+// (the confirmed result), appends any findings onto the end of the same
+// reviewItems array, and opens the review popup again showing only the new
+// ones. Its "Confirm & generate" reuses the existing confirm-btn handler
+// unchanged — it always sends the full reviewItems array, old and new
+// together, and /confirm doesn't care which round an item came from.
+
+document.getElementById("check-leftover-groupings-btn").addEventListener("click", async (e) => {
+  const statusEl = document.getElementById("leftover-groupings-status");
+  statusEl.style.display = "none";
+
+  await withBusyLabel(e.target, "Checking…", async () => {
+  try {
+    const response = await mzFetch(MIZAN_CONFIG.comparator + "/api/comparator/reconcile-leftovers", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ matched, reviewed: reviewItems }),
+    });
+    if (!response.ok) {
+      statusEl.textContent = await mzErrorDetail(response);
+      statusEl.style.display = "block";
+      return;
+    }
+    const data = await response.json();
+    if (!data.needs_review.length) {
+      statusEl.textContent = "No further groupings found among the remaining items.";
+      statusEl.style.display = "block";
+      return;
+    }
+    const startIndex = reviewItems.length;
+    reviewItems.push(...data.needs_review);
+    const newIndexes = data.needs_review.map((_, i) => startIndex + i);
+    renderReviewItems(newIndexes);
+    document.getElementById("results-modal").showModal();
+  } catch (err) {
+    statusEl.textContent = "Could not reach the server. Is it running?";
+    statusEl.style.display = "block";
+  }
+  });
+});
+
+// --- Step 3: report -----------------------------------------------------------
+
+document.getElementById("report-btn").addEventListener("click", async (e) => {
+  const errorEl = document.getElementById("report-error");
+  errorEl.style.display = "none";
+  const format = document.getElementById("report-format").value;
+
+  await withBusyLabel(e.target, "Generating report…", async () => {
+  try {
+    const response = await mzFetch(MIZAN_CONFIG.comparator + "/api/comparator/report", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ matched, reviewed: reviewItems, narration, format, language: "en" }),
+    });
+    if (!response.ok) {
+      errorEl.textContent = await mzErrorDetail(response);
+      errorEl.style.display = "block";
+      return;
+    }
+    const blob = await response.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "reconciliation_report." + format;
+    a.click();
+    URL.revokeObjectURL(url);
+  } catch (err) {
+    errorEl.textContent = "Could not reach the server. Is it running?";
+    errorEl.style.display = "block";
+  }
+  });
+});
+</script>
+</body>
+</html>

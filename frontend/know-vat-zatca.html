@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Mizan.ai — Ask VAT &amp; ZATCA questions</title>
+<link rel="stylesheet" href="style.css">
+<script src="config.js"></script>
+<script src="common.js"></script>
+</head>
+<body>
+<div class="mz-shell">
+  <a class="mz-back-link" href="app.html">&larr; Back to home</a>
+  <div class="mz-card xwide">
+    <h2>Ask VAT &amp; ZATCA questions</h2>
+    <p style="font-size:13px; color:var(--text-muted); margin-top:-0.5rem;">
+      Answers are grounded in ZATCA/VAT source documents — citations are shown under each reply.
+    </p>
+    <div class="mz-chat-log tall" id="chat-log"></div>
+    <div class="mz-chat-row">
+      <input type="text" id="message" placeholder="e.g. What is the standard VAT rate in Saudi Arabia?" autocomplete="off">
+      <button id="send-btn" aria-label="Send">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="12" x2="20" y2="12"/><polyline points="14 6 20 12 14 18"/></svg>
+      </button>
+    </div>
+    <p class="mz-error" id="error" style="display:none;"></p>
+  </div>
+</div>
+<script>
+mzRequireAuth();
+
+let sessionId = null;
+// The model container can be cold on the very first message of a session
+// (up to ~60-90s) — shown once as an explicit "warming up" notice so it
+// doesn't read as broken. Every later message just gets the quick dots.
+let isFirstMessage = true;
+
+function addMessage(sender, text, citations) {
+  const log = document.getElementById("chat-log");
+  const div = document.createElement("div");
+  div.className = "mz-chat-msg " + sender;
+  if (sender === "assistant") {
+    const avatar = document.createElement("span");
+    avatar.className = "mz-chat-avatar";
+    avatar.textContent = "M";
+    div.appendChild(avatar);
+  }
+
+  const textEl = document.createElement("div");
+  textEl.className = "text";
+  textEl.textContent = text;
+
+  if (citations && citations.length > 0) {
+    const citeEl = document.createElement("div");
+    citeEl.style.fontSize = "12px";
+    citeEl.style.opacity = "0.75";
+    citeEl.style.marginTop = "6px";
+    citeEl.textContent = "Sources: " + citations
+      .map(c => [c.document_type, c.jurisdiction, c.version_label].filter(Boolean).join(" — "))
+      .join("; ");
+    textEl.appendChild(document.createElement("br"));
+    textEl.appendChild(citeEl);
+  }
+
+  div.appendChild(textEl);
+  log.appendChild(div);
+  log.scrollTop = log.scrollHeight;
+}
+
+function showTyping(warmingUp) {
+  const log = document.getElementById("chat-log");
+  const div = document.createElement("div");
+  div.className = "mz-chat-msg assistant";
+  div.id = "typing-indicator";
+  const dots = '<span class="mz-typing-dots"><span></span><span></span><span></span></span>';
+  div.innerHTML =
+    '<span class="mz-chat-avatar">M</span>' +
+    '<div class="text">' + (warmingUp ? "Getting things ready, please wait… " : "") + dots + '</div>';
+  log.appendChild(div);
+  log.scrollTop = log.scrollHeight;
+}
+
+function hideTyping() {
+  const el = document.getElementById("typing-indicator");
+  if (el) el.remove();
+}
+
+async function sendMessage() {
+  const input = document.getElementById("message");
+  const errorEl = document.getElementById("error");
+  const sendBtn = document.getElementById("send-btn");
+  const text = input.value.trim();
+  if (!text) return;
+
+  errorEl.style.display = "none";
+  addMessage("user", text);
+  input.value = "";
+  sendBtn.disabled = true;
+  showTyping(isFirstMessage);
+
+  try {
+    const response = await mzFetch(MIZAN_CONFIG.explainer + "/api/know-vat-zatca/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message: text, session_id: sessionId }),
+    });
+    hideTyping();
+    isFirstMessage = false;
+    if (!response.ok) {
+      errorEl.textContent = await mzErrorDetail(response);
+      errorEl.style.display = "block";
+      return;
+    }
+    const data = await response.json();
+    sessionId = data.session_id;
+    addMessage("assistant", data.reply, data.citations);
+  } catch (err) {
+    hideTyping();
+    isFirstMessage = false;
+    errorEl.textContent = "Could not reach the server. Is it running?";
+    errorEl.style.display = "block";
+  } finally {
+    sendBtn.disabled = false;
+  }
+}
+
+document.getElementById("send-btn").addEventListener("click", sendMessage);
+document.getElementById("message").addEventListener("keydown", (e) => {
+  if (e.key === "Enter") sendMessage();
+});
+</script>
+</body>
+</html>

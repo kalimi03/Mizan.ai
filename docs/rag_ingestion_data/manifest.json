@@ -1,0 +1,146 @@
+[
+  {
+    "path": "docs/rag_ingestion_data/vat_implementing_regulations_full_text.pdf",
+    "document_type": "VAT Implementing Regulations",
+    "language": "en",
+    "version_label": "current",
+    "is_current": true,
+    "source_site": "zatca.gov.sa",
+    "source_url": "https://zatca.gov.sa/en/RulesRegulations/Taxes/Documents/Implmenting%20Regulations%20of%20the%20VAT%20Law_EN.pdf"
+  },
+  {
+    "path": "docs/rag_ingestion_data/gcc_unified_vat_agreement_ar.pdf",
+    "document_type": "GCC Unified VAT Agreement",
+    "language": "en",
+    "version_label": "current",
+    "is_current": true,
+    "source_site": "zatca.gov.sa",
+    "source_url": "https://zatca.gov.sa/ar/RulesRegulations/Taxes/Documents/GCC%20VAT%20Agreement.pdf"
+  },
+  {
+    "path": "docs/rag_ingestion_data/amendments_to_implementing_regulation_vat.pdf",
+    "document_type": "VAT Implementing Regulations Amendments",
+    "language": "en",
+    "version_label": "current",
+    "is_current": true,
+    "source_site": "zatca.gov.sa",
+    "source_url": "https://zatca.gov.sa/en/HelpCenter/guidelines/Documents/Amendments-to-the-Implementing-Regulation-of-(VAT).PDF"
+  },
+  {
+    "path": "docs/rag_ingestion_data/xml_implementation_standard_v1.2_2023_current_ar.pdf",
+    "document_type": "XML Implementation Standard",
+    "language": "ar",
+    "version_label": "v1.2_2023-05-19",
+    "is_current": true,
+    "source_site": "zatca.gov.sa",
+    "source_url": "https://zatca.gov.sa/ar/E-Invoicing/SystemsDevelopers/Documents/20230519_ZATCA_Electronic_Invoice_XML_Implementation_Standard_%20vF.pdf"
+  },
+  {
+    "path": "docs/rag_ingestion_data/xml_implementation_standard_2022_superseded_ar.pdf",
+    "document_type": "XML Implementation Standard",
+    "language": "ar",
+    "version_label": "2022-06-24",
+    "is_current": false,
+    "source_site": "zatca.gov.sa",
+    "source_url": "https://zatca.gov.sa/ar/E-Invoicing/SystemsDevelopers/Documents/20220624_ZATCA_Electronic_Invoice_XML_Implementation_Standard_vF.pdf"
+  },
+  {
+    "path": "docs/rag_ingestion_data/security_features_implementation_standard_2022_ar.pdf",
+    "document_type": "Security Features Implementation Standard",
+    "language": "ar",
+    "version_label": "2022-06-24",
+    "is_current": true,
+    "source_site": "zatca.gov.sa",
+    "source_url": "https://zatca.gov.sa/ar/E-Invoicing/SystemsDevelopers/Documents/20220624_ZATCA_Electronic_Invoice_Security_Features_Implementation_Standards.pdf"
+  },
+  {
+    "path": "docs/rag_ingestion_data/detailed_einvoicing_guideline_fatoora.pdf",
+    "document_type": "Detailed E-Invoicing Guideline",
+    "language": "en",
+    "version_label": "2023-05",
+    "is_current": true,
+    "source_site": "zatca.gov.sa",
+    "source_url": "https://zatca.gov.sa/en/E-Invoicing/Introduction/Guidelines/Documents/E-Invoicing_Detailed__Guideline.pdf"
+  },
+  {
+    "path": "docs/rag_ingestion_data/implementing_regulations_zakat_collection.pdf",
+    "document_type": "Implementing Regulations for Zakat Collection",
+    "language": "en",
+    "version_label": "1445H_2024",
+    "is_current": true,
+    "source_site": "zatca.gov.sa",
+    "source_url": "https://zatca.gov.sa/en/RulesRegulations/Documents/ZAKAT%20COLLECTION.pdf"
+  },
+  {
+    "path": "docs/rag_ingestion_data/guideline_for_zakat_documents.pdf",
+    "document_type": "Guideline for Zakat Documents",
+    "language": "en",
+    "version_label": "2023_first_edition",
+    "is_current": true,
+    "source_site": "zatca.gov.sa",
+    "source_url": "https://www.zatca.gov.sa/en/HelpCenter/guidelines/Documents/Zakat%20Docs.pdf"
+  },
+  {
+    "path": "docs/rag_ingestion_data/zakat_collection_overview_publication.pdf",
+    "document_type": "Zakat Collection Overview",
+    "language": "en",
+    "version_label": "current",
+    "is_current": true,
+    "source_site": "zatca.gov.sa",
+    "source_url": "https://zatca.gov.sa/en/MediaCenter/Publications/Documents/Zakat%20Collection.pdf"
+  },
+  {
+    "path": "docs/rag_ingestion_data/vat_penalties_taxation_violation_fines.csv",
+    "document_type": "VAT Penalties (Taxation Violation Fines)",
+    "language": "en",
+    "version_label": "current",
+    "is_current": true,
+    "source_site": "zatca.gov.sa",
+    "source_url": "https://zatca.gov.sa/en/RulesRegulations/VAT/Pages/Penalties.aspx"
+  },
+  {
+    "path": "docs/rag_ingestion_data/electronic_invoice_data_dictionary_2023_current.xlsx",
+    "document_type": "Electronic Invoice Data Dictionary",
+    "language": "en",
+    "version_label": "2023-05-19",
+    "is_current": true,
+    "source_site": "zatca.gov.sa",
+    "source_url": "https://zatca.gov.sa/ar/E-Invoicing/SystemsDevelopers/Documents/20230519_EInvoice_Data_Dictionary%20vF.xlsx"
+  },
+  {
+    "path": "docs/rag_ingestion_data/socpa_accountants_regulations.pdf",
+    "document_type": "SOCPA Accountants Regulations",
+    "language": "en",
+    "version_label": "2021-07-01",
+    "is_current": true,
+    "source_site": "socpa.org.sa",
+    "source_url": "https://socpa.org.sa/Socpa/About-Socpa/Accountant-s-Regulations.aspx?lang=en-us"
+  },
+  {
+    "path": "docs/rag_ingestion_data/vat_hub_overview.pdf",
+    "document_type": "VAT Hub Overview",
+    "language": "en",
+    "version_label": "2025-08-01",
+    "is_current": true,
+    "source_site": "zatca.gov.sa",
+    "source_url": "https://zatca.gov.sa/en/RulesRegulations/VAT/Pages/default.aspx"
+  },
+  {
+    "path": "docs/rag_ingestion_data/einvoicing_hub_overview.pdf",
+    "document_type": "E-Invoicing Hub Overview",
+    "language": "en",
+    "version_label": "2025-12-15",
+    "is_current": true,
+    "source_site": "zatca.gov.sa",
+    "source_url": "https://zatca.gov.sa/en/E-Invoicing/Pages/default.aspx"
+  },
+  {
+    "path": "docs/rag_ingestion_data/zakat_regulations_hub_version_metadata.pdf",
+    "document_type": "Zakat Regulations Hub",
+    "language": "en",
+    "version_label": "2025-06-01",
+    "is_current": true,
+    "source_site": "zatca.gov.sa",
+    "source_url": "https://zatca.gov.sa/en/RulesRegulations/Taxes/Pages/ZakatRegulations.aspx"
+  }
+]

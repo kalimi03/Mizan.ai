@@ -1,0 +1,636 @@
+/* Mizan.ai frontend — one shared stylesheet, no framework, no external
+   assets (fonts/icons are system-native so this works fully offline).
+   dir="rtl" on <html> (set for Arabic pages) flips layout automatically;
+   these rules avoid hardcoding left/right so that works without overrides.
+   Supports light + dark automatically via prefers-color-scheme. */
+
+:root {
+  --bg: #f4f6f5;
+  --surface: #ffffff;
+  --surface-2: #eef2f0;
+  --border: #e2e6e4;
+  --border-strong: #cfd6d2;
+  --text: #16201c;
+  --text-secondary: #46524d;
+  --text-muted: #7c8884;
+  --accent: #0e7c66;
+  --accent-hover: #0b6552;
+  --accent-light: #2bb894;
+  --accent-soft: #e3f2ee;
+  --btn-bg: var(--accent);
+  --btn-bg-hover: var(--accent-hover);
+  --error: #c22b1f;
+  --error-soft: #fbe9e7;
+  --radius: 12px;
+  --radius-sm: 8px;
+  --shadow-sm: 0 1px 2px rgba(16, 24, 21, 0.05), 0 1px 1px rgba(16, 24, 21, 0.04);
+  --shadow-md: 0 6px 16px rgba(16, 24, 21, 0.08), 0 2px 6px rgba(16, 24, 21, 0.05);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #101513;
+    --surface: #171e1b;
+    --surface-2: #1e2622;
+    --border: #2a332e;
+    --border-strong: #3a453f;
+    --text: #eef2f0;
+    --text-secondary: #b7c2bd;
+    --text-muted: #7c8884;
+    --accent: #2bb894;
+    --accent-hover: #45cba9;
+    --accent-light: #7ce8cc;
+    --accent-soft: #1a3830;
+    --btn-bg: var(--accent);
+    --btn-bg-hover: var(--accent-hover);
+    --error: #ef6b5f;
+    --error-soft: #3a2220;
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 8px 20px rgba(0, 0, 0, 0.4);
+  }
+}
+
+* { box-sizing: border-box; }
+
+/* Two large, very faint watermarks — the "M" mark top-right, the
+   balance-scale mark bottom-left — as inline SVG data URIs, not image
+   files, so this stays self-contained (no external assets). Colors are
+   baked in per-theme since a data URI can't reference this file's CSS
+   variables. */
+body {
+  margin: 0;
+  font-family: -apple-system, "Segoe UI", "Helvetica Neue", Tahoma, Arial, sans-serif;
+  background-color: var(--bg);
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ctext x='12' y='18' text-anchor='middle' font-family='Arial, sans-serif' font-weight='800' font-size='20' fill='%230e7c66' fill-opacity='0.05'%3EM%3C/text%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cg fill='none' stroke='%230e7c66' stroke-opacity='0.05' stroke-width='0.7' stroke-linecap='round' stroke-linejoin='round'%3E%3Cline x1='12' y1='3' x2='12' y2='19'/%3E%3Cline x1='5' y1='7' x2='19' y2='7'/%3E%3Cpath d='M5 7l-2.5 5a2.5 2.5 0 0 0 5 0L5 7z'/%3E%3Cpath d='M19 7l-2.5 5a2.5 2.5 0 0 0 5 0L19 7z'/%3E%3Cline x1='8' y1='20' x2='16' y2='20'/%3E%3C/g%3E%3C/svg%3E");
+  background-repeat: no-repeat, no-repeat;
+  background-position: right -100px top -80px, left -100px bottom -80px;
+  background-size: 640px 640px, 640px 640px;
+  background-attachment: fixed, fixed;
+  color: var(--text);
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+@media (prefers-color-scheme: dark) {
+  body {
+    background-image:
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ctext x='12' y='18' text-anchor='middle' font-family='Arial, sans-serif' font-weight='800' font-size='20' fill='%232bb894' fill-opacity='0.08'%3EM%3C/text%3E%3C/svg%3E"),
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cg fill='none' stroke='%232bb894' stroke-opacity='0.08' stroke-width='0.7' stroke-linecap='round' stroke-linejoin='round'%3E%3Cline x1='12' y1='3' x2='12' y2='19'/%3E%3Cline x1='5' y1='7' x2='19' y2='7'/%3E%3Cpath d='M5 7l-2.5 5a2.5 2.5 0 0 0 5 0L5 7z'/%3E%3Cpath d='M19 7l-2.5 5a2.5 2.5 0 0 0 5 0L19 7z'/%3E%3Cline x1='8' y1='20' x2='16' y2='20'/%3E%3C/g%3E%3C/svg%3E");
+  }
+}
+
+@media (max-width: 700px) {
+  /* Off canvas at narrow widths anyway; skip the extra paint work. */
+  body { background-image: none; }
+}
+
+.mz-shell {
+  max-width: 1040px;
+  margin: 0 auto;
+  padding: 0.6rem 1.25rem 1.5rem;
+}
+
+.mz-auth-shell {
+  max-width: 380px;
+  margin: 0 auto;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 1.5rem 1.25rem;
+}
+
+.mz-auth-logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 1.25rem;
+}
+.mz-auth-logo .mz-logo-icon { width: 30px; height: 30px; }
+.mz-auth-logo .mz-wordmark { font-size: 30px; }
+
+/* The balance-scale mark, drawn as SVG (stroke="currentColor") rather than
+   using the ⚖️ emoji — emoji glyphs carry their own fixed color (usually
+   gold/orange) on every platform and ignore CSS `color` entirely, so an
+   emoji can never actually render green. This looks like the same mark,
+   fully colorable. */
+.mz-logo-icon { color: var(--accent); flex-shrink: 0; }
+
+/* "Mizan" is the dominant word — a two-tone green gradient, not flat text.
+   ".ai" stays a plain muted color so it reads as a suffix, not competing
+   with the gradient. background-clip:text has near-universal support in
+   evergreen browsers; -webkit- prefix covers Safari. */
+.mz-wordmark {
+  font-weight: 800;
+  font-size: 27px;
+  letter-spacing: -0.03em;
+}
+.mz-wordmark .mz-wordmark-main {
+  background: linear-gradient(120deg, var(--accent) 20%, var(--accent-light) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: var(--accent); /* fallback if background-clip:text isn't supported */
+  -webkit-text-fill-color: transparent;
+}
+.mz-wordmark .mz-wordmark-suffix { color: var(--text-muted); font-weight: 700; }
+
+.mz-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-top: 3px solid var(--accent);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+  padding: 1.1rem 1.5rem;
+  /* Capped and centered independently of .mz-shell's width — a form or
+     chat panel reads better at a moderate width even on a wide monitor;
+     only the feature-card grid (not a .mz-card) is meant to stretch and
+     use the full wider shell. .mz-card.wide (home page chat) opts out. */
+  max-width: 720px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.mz-card.wide { max-width: 860px; }
+/* Used only by pages that are entirely chat (nothing else competing for
+   space, e.g. know-vat-zatca.html) — wider still than .wide. */
+.mz-card.xwide { max-width: 980px; }
+
+/* A <dialog class="mz-card"> (e.g. Comparator's match/review popup) — the
+   browser's native showModal() already centers it and puts it in the top
+   layer; this just widens it (it holds a table + review cards, cramped at
+   .mz-card's normal 720px) and makes its own content scroll internally
+   instead of overflowing the viewport on a long review list. */
+dialog.mz-card {
+  width: 90vw;
+  max-width: 860px;
+  max-height: 85vh;
+  overflow-y: auto;
+}
+dialog.mz-card::backdrop {
+  background: rgba(0, 0, 0, 0.55);
+}
+
+h1, h2, h3, h4 { margin-top: 0; letter-spacing: -0.01em; }
+h1 { font-size: 26px; font-weight: 700; }
+h2 { font-size: 19px; font-weight: 700; color: var(--accent); }
+h3 { font-size: 15px; font-weight: 600; color: var(--text-secondary); }
+h4 { font-size: 14px; font-weight: 700; color: var(--accent); }
+
+ol, ul { padding-inline-start: 1.4em; }
+ol li, ul li { margin-bottom: 0.4em; }
+
+/* Documentation page: one bordered card per feature (top-level), plus a
+   visually distinct nested box per sub-feature — reuses .mz-card's own
+   look for the outer card and .surface-2 (already used for "needs
+   attention"-style panels elsewhere) for the inner one, so a sub-card
+   never reads as just "more text" inside the same card. */
+.mz-doc-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-top: 3px solid var(--accent);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+  padding: 1.25rem 1.5rem;
+  max-width: 980px;
+  margin: 0 auto 1.25rem;
+}
+.mz-doc-subcard {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 1rem 1.25rem;
+  margin: 1rem 0;
+}
+.mz-doc-subcard:last-child { margin-bottom: 0; }
+
+/* Small uppercase eyebrow label ahead of each subsection (Purpose, How it
+   works, ...) — a lighter-weight boundary than a full heading, but still
+   makes each subsection scannable instead of running paragraphs together. */
+.mz-doc-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--accent);
+  margin: 1rem 0 0.3rem;
+}
+.mz-doc-label:first-child { margin-top: 0; }
+[dir="rtl"] .mz-doc-label { letter-spacing: 0; }
+
+.mz-doc-example {
+  background: var(--accent-soft);
+  border-inline-start: 3px solid var(--accent);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  padding: 0.7rem 0.9rem;
+  margin-top: 0.5rem;
+  font-size: 14px;
+}
+[dir="rtl"] .mz-doc-example { border-inline-start: none; border-inline-end: 3px solid var(--accent); }
+
+/* Language picker: two large choices shown once, then remembered
+   (localStorage) so the same choice doesn't need repeating on every
+   visit; a small link lets it be changed again without a page reload. */
+.mz-lang-gate {
+  text-align: center;
+  padding: 2.5rem 1.5rem;
+}
+.mz-lang-gate-buttons {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  margin-top: 1.25rem;
+  flex-wrap: wrap;
+}
+.mz-lang-switch {
+  display: inline-block;
+  font-size: 12px;
+  color: var(--text-muted);
+  cursor: pointer;
+  text-decoration: underline;
+  margin-bottom: 1rem;
+}
+
+label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin: 0.85rem 0 0.3rem;
+}
+
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+select,
+textarea {
+  width: 100%;
+  padding: 0.55rem 0.7rem;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  font-family: inherit;
+  background: var(--surface);
+  color: var(--text);
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+/* Native file inputs render very differently from text inputs (embedded
+   button + filename text) — the same bordered/padded box used elsewhere
+   made them look like an oversized empty rectangle. This restyles just
+   the button part (broadly supported: Chrome/Edge/Firefox/Safari) and
+   keeps the rest borderless/compact instead of boxed. */
+input[type="file"] {
+  width: 100%;
+  padding: 0.2rem 0;
+  border: none;
+  font-size: 13px;
+  font-family: inherit;
+  color: var(--text-secondary);
+}
+input[type="file"]::file-selector-button {
+  cursor: pointer;
+  border: none;
+  border-radius: 999px;
+  padding: 0.45rem 1rem;
+  margin-inline-end: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: inherit;
+  background: var(--btn-bg);
+  color: #fff;
+  transition: background 0.15s;
+}
+input[type="file"]::file-selector-button:hover { background: var(--btn-bg-hover); }
+
+/* Puts two file fields side by side instead of stacked — used where a
+   page needs more than one file at once (e.g. Comparator's two documents,
+   Editor's signature PDF + image). */
+.mz-file-row {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.mz-file-row > div { flex: 1; min-width: 220px; }
+
+/* Single-value fields stay a comfortable typing width even inside a wider
+   card — only textarea/file (and grids/tables, styled separately) are
+   meant to use the full page width. Without this, a page with a bigger
+   .mz-shell would stretch a one-word input to hundreds of pixels wide. */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+select {
+  max-width: 480px;
+}
+
+/* The chat search bar is meant to stretch with its (wider) card, unlike a
+   short form field — overrides the 480px cap above. */
+.mz-chat-row input { max-width: none; }
+
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+textarea { resize: vertical; }
+
+button {
+  cursor: pointer;
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 0.6rem 1.2rem;
+  font-size: 14px;
+  font-weight: 600;
+  background: var(--btn-bg);
+  color: #fff;
+  box-shadow: var(--shadow-sm);
+  transition: background 0.15s, transform 0.1s, box-shadow 0.15s;
+}
+
+button:hover:not(:disabled) { background: var(--btn-bg-hover); transform: translateY(-1px); box-shadow: var(--shadow-md); }
+button:active:not(:disabled) { transform: translateY(0); }
+button:disabled { opacity: 0.5; cursor: default; box-shadow: none; }
+
+button.mz-secondary {
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border-strong);
+  box-shadow: none;
+}
+button.mz-secondary:hover:not(:disabled) { background: var(--surface-2); box-shadow: none; }
+
+a { color: var(--accent); }
+
+.mz-error {
+  color: var(--error);
+  background: var(--error-soft);
+  border-radius: var(--radius-sm);
+  padding: 0.5rem 0.7rem;
+  font-size: 13px;
+  margin-top: 0.75rem;
+}
+
+.mz-status {
+  color: var(--text-secondary);
+  font-size: 13px;
+  margin-top: 0.75rem;
+}
+
+/* Spans the true browser viewport edge-to-edge (not capped by .mz-shell's
+   max-width) so the logo sits at the page's actual top-left corner rather
+   than the left edge of a centered content column. */
+.mz-topbar {
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  padding: 0.6rem 1.5rem;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 0.6rem;
+}
+
+/* Independently centered at the true top-middle of the page, rather than
+   living inside the (left/right space-between) logo row. */
+.mz-wordmark-ar-center {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 27px;
+  font-weight: 800;
+  color: var(--accent);
+}
+
+.mz-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  text-decoration: none;
+}
+
+/* Sits inline after the English wordmark, same size, in a flat dark green
+   (not the gradient used on "Mizan") so it reads as a companion mark
+   rather than competing with it. */
+.mz-wordmark-ar {
+  font-size: 27px;
+  font-weight: 800;
+  color: var(--accent);
+}
+.mz-auth-logo .mz-wordmark-ar { font-size: 30px; }
+
+.mz-nav-links a {
+  margin-inline-start: 1rem;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  color: var(--text-secondary);
+  padding: 0.4rem 0.8rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-strong);
+}
+.mz-nav-links a:hover { color: var(--text); background: var(--surface-2); }
+
+.mz-hero {
+  max-width: 640px;
+  margin: 0 auto 0.75rem;
+  text-align: center;
+}
+.mz-hero-title {
+  font-size: 30px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--accent);
+  margin: 0 0 0.5rem;
+}
+.mz-hero-title-ar {
+  font-size: 19px;
+  font-weight: 700;
+  color: var(--accent);
+  margin: 0 0 0.75rem;
+}
+
+.mz-grid {
+  display: grid;
+  /* 130px (not the usual 150px) specifically so all 7 home-page cards fit
+     one one row at the shell's ~1000px content width instead of wrapping
+     to a second row — narrower windows still reflow naturally. */
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 12px;
+}
+
+.mz-feature-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  text-align: center;
+  padding: 1.25rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--accent-soft);
+  box-shadow: var(--shadow-sm);
+  text-decoration: none;
+  color: var(--text);
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.12s, box-shadow 0.12s, border-color 0.12s;
+}
+.mz-feature-card:hover { border-color: var(--accent); transform: translateY(-2px); box-shadow: var(--shadow-md); }
+
+.mz-feature-card .mz-icon {
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  background: var(--surface);
+  border-radius: 50%;
+}
+
+.mz-feature-card.soon {
+  opacity: 0.55;
+  cursor: default;
+  pointer-events: none;
+}
+.mz-feature-card .soon-label {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+.mz-back-link {
+  display: inline-block;
+  margin-bottom: 1rem;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  color: var(--text-secondary);
+}
+.mz-back-link:hover { color: var(--accent); }
+
+table.mz-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  margin-top: 0.75rem;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+table.mz-table th, table.mz-table td {
+  border-bottom: 1px solid var(--border);
+  padding: 0.55rem 0.6rem;
+  text-align: start;
+}
+table.mz-table th {
+  background: var(--surface-2);
+  font-weight: 700;
+  color: var(--text-secondary);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+table.mz-table tbody tr:hover { background: var(--surface-2); }
+
+.mz-chat-log {
+  border-radius: var(--radius);
+  padding: 0.4rem 0.2rem;
+  height: 340px;
+  overflow-y: auto;
+  margin-bottom: 0.85rem;
+}
+
+/* Shorter on the home page specifically — that chat sits below a full
+   feature grid and needs to stay visible without scrolling; the dedicated
+   chat pages (know-vat-zatca.html) have the whole page to themselves, so
+   they use .tall instead — nothing else on that page competing for space. */
+.mz-chat-log.compact { height: 210px; }
+.mz-chat-log.tall { height: 380px; }
+
+/* Message bubbles, sender-aligned (Claude/Gemini-style) instead of a
+   labeled list — .user/.assistant set by JS per message. flex justify-
+   content (not margin-left/right) so this flips correctly under dir="rtl"
+   without any extra rules. */
+.mz-chat-msg {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  margin: 0 0 0.9rem;
+}
+.mz-chat-msg.user { justify-content: flex-end; }
+.mz-chat-msg.assistant { justify-content: flex-start; }
+
+.mz-chat-avatar {
+  flex-shrink: 0;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #fff;
+  font-weight: 800;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mz-chat-msg .text {
+  max-width: 75%;
+  padding: 0.65rem 0.95rem;
+  border-radius: 16px;
+  font-size: 14.5px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+.mz-chat-msg.user .text { background: var(--accent); color: #fff; }
+.mz-chat-msg.assistant .text { background: var(--surface); border: 1px solid var(--border); color: var(--text); }
+
+/* "Typing" indicator bubble — shown in place of the assistant's reply
+   while a chat request is actually in flight (not a fake staged-progress
+   animation, just an honest "still working" signal), removed the moment
+   the real response arrives. */
+.mz-typing-dots { display: inline-flex; gap: 4px; padding: 2px 0; }
+.mz-typing-dots span {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--text-muted);
+  animation: mz-typing-bounce 1.2s infinite ease-in-out;
+}
+.mz-typing-dots span:nth-child(2) { animation-delay: 0.15s; }
+.mz-typing-dots span:nth-child(3) { animation-delay: 0.3s; }
+@keyframes mz-typing-bounce {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.5; }
+  30% { transform: translateY(-4px); opacity: 1; }
+}
+
+.mz-chat-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.mz-chat-row input {
+  flex: 1;
+  border-radius: 999px;
+  padding: 0.65rem 1.1rem;
+}
+.mz-chat-row button {
+  flex-shrink: 0;
+  width: 42px;
+  height: 42px;
+  padding: 0;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.mz-chat-row button svg { width: 18px; height: 18px; }

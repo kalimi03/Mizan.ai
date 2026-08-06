@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Mizan.ai — VAT Compliance Center</title>
+<link rel="stylesheet" href="style.css">
+<script src="config.js"></script>
+<script src="common.js"></script>
+</head>
+<body>
+<div class="mz-shell">
+  <a class="mz-back-link" href="app.html">&larr; Back to home</a>
+  <h2>VAT Compliance Center</h2>
+
+  <div class="mz-grid" style="grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); margin-top:1rem;">
+    <a class="mz-feature-card" href="invoice-check.html" style="padding:1.75rem 1rem;">
+      <span class="mz-icon">🧾</span>
+      <span style="font-size:15px;">Check invoices for compliance</span>
+    </a>
+    <a class="mz-feature-card" href="period-return.html" style="padding:1.75rem 1rem;">
+      <span class="mz-icon">📅</span>
+      <span style="font-size:15px;">Prepare a period VAT return</span>
+    </a>
+  </div>
+
+  <!-- Independent of the two options above — a question about your own past
+       filings (e.g. "what did I do for customer X last time?"), answered
+       from work.user_filing_notes, not tied to either flow. -->
+  <div class="mz-card wide" id="filing-notes-qa" style="margin-top:1.5rem; min-height:280px;">
+    <h3>Ask about past filings</h3>
+    <label for="qa-question">Question</label>
+    <div style="display:flex; gap:8px; align-items:center;">
+      <input type="text" id="qa-question" placeholder="e.g. What did I do for this customer last time?" style="max-width:none; flex:1;">
+      <button id="qa-btn" style="flex-shrink:0;">Ask</button>
+    </div>
+    <p class="mz-error" id="qa-error" style="display:none;"></p>
+    <div id="qa-answer" style="margin-top:0.9rem; padding:0.9rem 1rem; min-height:120px; border-radius:var(--radius-sm); background:var(--surface-2); border:1px solid var(--border); display:none;"></div>
+  </div>
+</div>
+
+<script>
+mzRequireAuth();
+
+async function withBusyLabel(btn, busyText, fn) {
+  const original = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = busyText;
+  try {
+    await fn();
+  } finally {
+    btn.disabled = false;
+    btn.textContent = original;
+  }
+}
+
+document.getElementById("qa-btn").addEventListener("click", async (e) => {
+  const errorEl = document.getElementById("qa-error");
+  const answerEl = document.getElementById("qa-answer");
+  errorEl.style.display = "none";
+
+  const question = document.getElementById("qa-question").value.trim();
+  if (!question) {
+    errorEl.textContent = "Enter a question first.";
+    errorEl.style.display = "block";
+    return;
+  }
+  answerEl.textContent = "Thinking…";
+  answerEl.style.display = "block";
+  await withBusyLabel(e.target, "Thinking…", async () => {
+  try {
+    const response = await mzFetch(MIZAN_CONFIG.calculator + "/api/compliance/filing-notes/qa", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ question, customer_name: null }),
+    });
+    if (!response.ok) {
+      errorEl.textContent = await mzErrorDetail(response);
+      errorEl.style.display = "block";
+      answerEl.style.display = "none";
+      return;
+    }
+    const data = await response.json();
+    answerEl.textContent = data.answer;
+    answerEl.style.display = "block";
+  } catch (err) {
+    errorEl.textContent = "Could not reach the server. Is it running?";
+    errorEl.style.display = "block";
+    answerEl.style.display = "none";
+  }
+  });
+});
+</script>
+</body>
+</html>

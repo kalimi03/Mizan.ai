@@ -1,0 +1,11 @@
+violation_description,penalty
+"Submit false documents to evade the payment or reduce VAT due or unlawfully obtain refunds","At least VAT due, up to 3x the goods/service value"
+"Move or attempt to move goods in or out of the Kingdom without paying the VAT due","At least VAT due, up to 3x the goods/service value"
+"Failure to apply for VAT registration","SAR 10,000"
+"Failure to submit the Tax Return","5%-25% of undeclared tax value"
+"Failure to pay tax due","5% of unpaid tax monthly or partial month"
+"Issuance of Tax Invoice by non-registered Person","Max SAR 100,000"
+"Failure to keep Tax Invoices, books, records and accounting documents","Max SAR 50,000"
+"Prevention or obstruction of ZATCA employees from performing duties","Max SAR 50,000"
+"Violation of any provision of the VAT Regulations or the VAT Law","Max SAR 50,000"
+"Filing incorrect tax return, amend a tax return or file any document resulting in a lower amount due","50% of difference between calculated and actual tax due"

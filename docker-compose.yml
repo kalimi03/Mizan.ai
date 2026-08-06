@@ -1,5 +1,3 @@
-version: "3.9"
-
 services:
   chatbot:
     build:
@@ -15,14 +13,84 @@ services:
       DB_USER: postgres
       DB_PASSWORD: postgres123
       MIZAN_QWEN_LITE_URL: ${MIZAN_QWEN_LITE_URL:-}
-      MIZAN_EMBEDDER_URL: ${MIZAN_EMBEDDER_URL:-}
-      MIZAN_TRANSLATE_URL: ${MIZAN_TRANSLATE_URL:-}
       JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in your environment or .env file}
       MAILGUN_API_KEY: ${MAILGUN_API_KEY:?Set MAILGUN_API_KEY in your environment or .env file}
       MAILGUN_DOMAIN: ${MAILGUN_DOMAIN:?Set MAILGUN_DOMAIN in your environment or .env file}
       MAILGUN_FROM_EMAIL: ${MAILGUN_FROM_EMAIL:?Set MAILGUN_FROM_EMAIL in your environment or .env file}
+      LANGCHAIN_TRACING_V2: ${LANGCHAIN_TRACING_V2:-false}
+      LANGCHAIN_API_KEY: ${LANGCHAIN_API_KEY:-}
+      LANGCHAIN_PROJECT: ${LANGCHAIN_PROJECT:-mizan-ai}
+    depends_on:
+      - postgres
+    restart: unless-stopped
+
+  calculator:
+    build:
+      context: .
+      dockerfile: services/calculator/Dockerfile
+    container_name: mizan-calculator
+    ports:
+      - "8002:8002"
+    environment:
+      DB_HOST: mizan-postgres
+      DB_PORT: 5432
+      DB_NAME: mizan_db
+      DB_USER: postgres
+      DB_PASSWORD: postgres123
+      MIZAN_QWEN_BRAIN_URL: ${MIZAN_QWEN_BRAIN_URL:-}
+      MIZAN_TRANSLATOR_INTERNAL_URL: http://translator:8003/internal/translate
+      MIZAN_DOC_EXTRACTION_URL: http://doc-extraction:8001
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in your environment or .env file}
+      LANGCHAIN_TRACING_V2: ${LANGCHAIN_TRACING_V2:-false}
+      LANGCHAIN_API_KEY: ${LANGCHAIN_API_KEY:-}
+      LANGCHAIN_PROJECT: ${LANGCHAIN_PROJECT:-mizan-ai}
+    depends_on:
+      - postgres
+      - translator
+      - doc-extraction
+    restart: unless-stopped
+
+  translator:
+    build:
+      context: .
+      dockerfile: services/translator/Dockerfile
+    container_name: mizan-translator
+    ports:
+      - "8003:8003"
+    environment:
+      MIZAN_TRANSLATE_URL: ${MIZAN_TRANSLATE_URL:-}
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in your environment or .env file}
+    restart: unless-stopped
+
+  converter:
+    build:
+      context: .
+      dockerfile: services/converter/Dockerfile
+    container_name: mizan-converter
+    ports:
+      - "8004:8004"
+    environment:
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in your environment or .env file}
+    restart: unless-stopped
+
+  rag-online:
+    build:
+      context: .
+      dockerfile: services/explainer/Dockerfile
+    container_name: mizan-rag-online
+    ports:
+      - "8005:8005"
+    environment:
+      DB_HOST: mizan-postgres
+      DB_PORT: 5432
+      DB_NAME: mizan_db
+      DB_USER: postgres
+      DB_PASSWORD: postgres123
       QDRANT_URL: http://mizan-qdrant:6333
       KNOW_VAT_ZATCA_SQLITE_PATH: /data/know_vat_n_zatca.db
+      MIZAN_EMBEDDER_URL: ${MIZAN_EMBEDDER_URL:-}
+      MIZAN_QWEN_LITE_URL: ${MIZAN_QWEN_LITE_URL:-}
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in your environment or .env file}
       LANGCHAIN_TRACING_V2: ${LANGCHAIN_TRACING_V2:-false}
       LANGCHAIN_API_KEY: ${LANGCHAIN_API_KEY:-}
       LANGCHAIN_PROJECT: ${LANGCHAIN_PROJECT:-mizan-ai}
@@ -31,6 +99,43 @@ services:
     depends_on:
       - postgres
       - qdrant
+    restart: unless-stopped
+
+  pdf-editor:
+    build:
+      context: .
+      dockerfile: services/editor/Dockerfile
+    container_name: mizan-pdf-editor
+    ports:
+      - "8006:8006"
+    environment:
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in your environment or .env file}
+    restart: unless-stopped
+
+  comparator:
+    build:
+      context: .
+      dockerfile: services/comparator/Dockerfile
+    container_name: mizan-comparator
+    ports:
+      - "8007:8007"
+    environment:
+      MIZAN_DOC_EXTRACTION_URL: http://doc-extraction:8001
+      MIZAN_TRANSLATOR_INTERNAL_URL: http://translator:8003/internal/translate
+      MIZAN_QWEN_BRAIN_URL: ${MIZAN_QWEN_BRAIN_URL:-}
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in your environment or .env file}
+    depends_on:
+      - doc-extraction
+      - translator
+    restart: unless-stopped
+
+  doc-extraction:
+    build:
+      context: .
+      dockerfile: services/data_extraction/Dockerfile
+    container_name: mizan-doc-extraction
+    ports:
+      - "8001:8001"
     restart: unless-stopped
 
   postgres:
@@ -58,10 +163,18 @@ services:
 
 volumes:
   postgres_data:
+  # external: true + a plain (unprefixed) name -- these two are shared with
+  # containers started outside this compose project (the long-running
+  # Qdrant instance, and services/offline_data_ingestion/'s manual `-v`
+  # mount), which both already write to/read from these exact volume names.
+  # Without `external: true`, Compose would default to a project-prefixed
+  # name (e.g. mizanai_qdrant_data) -- a *different*, empty volume -- and
+  # rag-online would silently see no ingested data. Not a "SQLite
+  # container" (SQLite has no server process to run) -- just the shared
+  # file both sides mount.
   qdrant_data:
-  # Shared with services/know_vat_n_zatca_offline/Dockerfile's -v mount
-  # (same volume name) -- this is how the always-on gateway container
-  # actually sees what the separate, manually-run offline ingestion
-  # container writes. Not a "SQLite container" (SQLite has no server
-  # process to run) -- just the shared file both sides mount.
+    external: true
+    name: qdrant_data
   know_vat_zatca_sqlite:
+    external: true
+    name: know_vat_zatca_sqlite

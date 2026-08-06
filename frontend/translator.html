@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Mizan.ai — Translate</title>
+<link rel="stylesheet" href="style.css">
+<script src="config.js"></script>
+<script src="common.js"></script>
+</head>
+<body>
+<div class="mz-shell">
+  <a class="mz-back-link" href="app.html">&larr; Back to home</a>
+  <div class="mz-card">
+    <h2>Translate (English &lt;-&gt; Arabic)</h2>
+    <p style="font-size:13px; color:var(--text-muted); margin-top:-0.5rem;">
+      Paste a paragraph — the language is detected automatically and translated to the other one.
+    </p>
+    <label for="source-text">Text</label>
+    <textarea id="source-text" rows="6"></textarea>
+    <button id="translate-btn" style="margin-top:1rem;">Translate</button>
+    <p class="mz-error" id="error" style="display:none;"></p>
+
+    <div id="result" style="display:none; margin-top:1.25rem;">
+      <label>Translated text (<span id="lang-label"></span>)</label>
+      <textarea id="translated-text" rows="6" readonly></textarea>
+    </div>
+
+    <h3 style="margin-top:1.5rem;">More ways to translate</h3>
+    <div class="mz-grid">
+      <span class="mz-feature-card soon"><span class="mz-icon">📄</span><span>Translate a file</span><span class="soon-label">Coming soon</span></span>
+    </div>
+  </div>
+</div>
+<script>
+mzRequireAuth();
+
+document.getElementById("translate-btn").addEventListener("click", async () => {
+  const errorEl = document.getElementById("error");
+  const btn = document.getElementById("translate-btn");
+  errorEl.style.display = "none";
+
+  const text = document.getElementById("source-text").value.trim();
+  if (!text) {
+    errorEl.textContent = "Enter some text first.";
+    errorEl.style.display = "block";
+    return;
+  }
+
+  btn.disabled = true;
+  try {
+    const response = await mzFetch(MIZAN_CONFIG.translator + "/api/translate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text }),
+    });
+    if (!response.ok) {
+      errorEl.textContent = await mzErrorDetail(response);
+      errorEl.style.display = "block";
+      return;
+    }
+    const data = await response.json();
+    document.getElementById("translated-text").value = data.translated_text;
+    document.getElementById("lang-label").textContent = data.source_language + " → " + data.target_language;
+    document.getElementById("result").style.display = "block";
+  } catch (err) {
+    errorEl.textContent = "Could not reach the server. Is it running?";
+    errorEl.style.display = "block";
+  } finally {
+    btn.disabled = false;
+  }
+});
+</script>
+</body>
+</html>

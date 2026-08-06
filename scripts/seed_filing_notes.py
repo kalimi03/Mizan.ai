@@ -1,6 +1,6 @@
 """
 Seed a handful of fake work.user_filing_notes rows so the Feature E Q&A
-query path (agents/chatbot/filing_notes_qa.py) is verifiable via Swagger
+query path (features/chatbot/filing_notes_qa.py) is verifiable via Swagger
 before Feature E's real extraction pipeline exists.
 
 Usage: python scripts/seed_filing_notes.py
@@ -11,7 +11,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from agents.chatbot.memory.persistence import get_connection, get_user_by_email, initialize_auth_schema
+from features.chatbot.memory.persistence import get_connection, get_user_by_email, initialize_auth_schema
 
 SEED_EMAIL = "seed_filing_test@mizan.ai"
 SEED_PASSWORD = "SeedFilingTest123"
@@ -26,7 +26,7 @@ SEED_ROWS = [
 
 
 def _get_or_create_seed_user() -> str:
-    from agents.chatbot.memory.persistence import create_user
+    from features.chatbot.memory.persistence import create_user
 
     existing = get_user_by_email(SEED_EMAIL)
     if existing:
