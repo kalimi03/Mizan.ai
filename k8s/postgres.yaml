@@ -1,0 +1,63 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-data
+spec:
+  accessModes: ["ReadWriteOnce"]
+  resources:
+    requests:
+      storage: 5Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mizan-postgres
+  labels: { app: mizan-postgres }
+spec:
+  replicas: 1
+  # Recreate, not RollingUpdate -- a single ReadWriteOnce volume can't be
+  # mounted by two Postgres pods at once, which a rolling update would
+  # briefly attempt. Same reasoning applies to qdrant.yaml.
+  strategy: { type: Recreate }
+  selector:
+    matchLabels: { app: mizan-postgres }
+  template:
+    metadata:
+      labels: { app: mizan-postgres }
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:15
+          ports: [{ containerPort: 5432 }]
+          env:
+            - name: POSTGRES_USER
+              valueFrom: { configMapKeyRef: { name: mizan-config, key: DB_USER } }
+            - name: POSTGRES_DB
+              valueFrom: { configMapKeyRef: { name: mizan-config, key: DB_NAME } }
+            - name: POSTGRES_PASSWORD
+              valueFrom: { secretKeyRef: { name: mizan-secrets, key: DB_PASSWORD } }
+          volumeMounts:
+            - { name: data, mountPath: /var/lib/postgresql/data }
+          resources:
+            requests: { cpu: "100m", memory: "256Mi" }
+            limits: { cpu: "500m", memory: "1Gi" }
+          readinessProbe:
+            tcpSocket: { port: 5432 }
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          livenessProbe:
+            tcpSocket: { port: 5432 }
+            initialDelaySeconds: 15
+            periodSeconds: 10
+      volumes:
+        - name: data
+          persistentVolumeClaim: { claimName: postgres-data }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mizan-postgres
+spec:
+  selector: { app: mizan-postgres }
+  ports:
+    - { port: 5432, targetPort: 5432 }

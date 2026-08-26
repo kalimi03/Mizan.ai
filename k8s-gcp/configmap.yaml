@@ -1,0 +1,14 @@
+# Non-secret, shared config -- mirrors the literal values docker-compose.yml
+# hardcodes in each service's environment block (DB_HOST etc were the same
+# literal "mizan-postgres" string repeated 3x there; here it's one source).
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mizan-config
+data:
+  DB_HOST: "mizan-postgres"
+  DB_PORT: "5432"
+  DB_NAME: "mizan_db"
+  DB_USER: "postgres"
+  LANGCHAIN_TRACING_V2: "false"
+  LANGCHAIN_PROJECT: "mizan-ai"

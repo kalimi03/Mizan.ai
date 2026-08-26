@@ -100,3 +100,25 @@ def get_current_user_id_full_access(
     if payload.get("must_reset_password"):
         raise HTTPException(status_code=403, detail="Password reset required before continuing")
     return payload["sub"]
+
+
+def get_current_user_id_optional(
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(_bearer_scheme),
+) -> Optional[str]:
+    """For endpoints usable by both guests and logged-in users (currently
+    just the homepage chat) — never rejects the request. Returns the
+    user_id for a valid, fully-usable token (same acceptance rule as
+    get_current_user_id_full_access), and None for anything else: no
+    token, an invalid/expired one, or a pending-password-reset one. A
+    missing/bad token degrades to "treat as guest" here rather than 401,
+    since unlike the full-access routes, there's no logged-in-only
+    functionality on the other side of this one to protect."""
+    if credentials is None:
+        return None
+    try:
+        payload = _decode_token(credentials.credentials)
+    except ValueError:
+        return None
+    if payload.get("must_reset_password"):
+        return None
+    return payload["sub"]

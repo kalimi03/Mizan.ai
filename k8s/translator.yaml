@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: translator
+  labels: { app: translator }
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: translator }
+  template:
+    metadata:
+      labels: { app: translator }
+    spec:
+      imagePullSecrets:
+        - name: gcr-json-key
+      containers:
+        - name: translator
+          image: mizanai-translator:latest
+          imagePullPolicy: IfNotPresent
+          ports: [{ containerPort: 8003 }]
+          env:
+            - name: MIZAN_TRANSLATE_URL
+              valueFrom: { secretKeyRef: { name: mizan-secrets, key: MIZAN_TRANSLATE_URL } }
+            - name: JWT_SECRET
+              valueFrom: { secretKeyRef: { name: mizan-secrets, key: JWT_SECRET } }
+          resources:
+            requests: { cpu: "50m", memory: "128Mi" }
+            limits: { cpu: "300m", memory: "400Mi" }
+          readinessProbe:
+            tcpSocket: { port: 8003 }
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          livenessProbe:
+            tcpSocket: { port: 8003 }
+            initialDelaySeconds: 15
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: translator
+spec:
+  selector: { app: translator }
+  ports:
+    - { port: 8003, targetPort: 8003 }

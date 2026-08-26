@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: comparator
+  labels: { app: comparator }
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: comparator }
+  template:
+    metadata:
+      labels: { app: comparator }
+    spec:
+      imagePullSecrets:
+        - name: gcr-json-key
+      containers:
+        - name: comparator
+          image: us-central1-docker.pkg.dev/mizan-ai-kalimi03/mizan-images/comparator:latest
+          imagePullPolicy: Always
+          ports: [{ containerPort: 8007 }]
+          env:
+            - name: MIZAN_QWEN_BRAIN_URL
+              valueFrom: { secretKeyRef: { name: mizan-secrets, key: MIZAN_QWEN_BRAIN_URL } }
+            - name: JWT_SECRET
+              valueFrom: { secretKeyRef: { name: mizan-secrets, key: JWT_SECRET } }
+            - name: MIZAN_DOC_EXTRACTION_URL
+              value: "http://doc-extraction:8001"
+            - name: MIZAN_TRANSLATOR_INTERNAL_URL
+              value: "http://translator:8003/internal/translate"
+          resources:
+            requests: { cpu: "50m", memory: "128Mi" }
+            limits: { cpu: "300m", memory: "400Mi" }
+          readinessProbe:
+            tcpSocket: { port: 8007 }
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          livenessProbe:
+            tcpSocket: { port: 8007 }
+            initialDelaySeconds: 15
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: comparator
+spec:
+  selector: { app: comparator }
+  ports:
+    - { port: 8007, targetPort: 8007 }

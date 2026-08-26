@@ -1,0 +1,19 @@
+# kubectl apply -k k8s/  -- applies everything below into the `mizan`
+# namespace in one shot. mizan-secrets is deliberately NOT listed here: it's
+# created separately from the local .env file (see k8s/README.md) so no
+# secret value ever needs to be committed to this repo.
+namespace: mizan
+
+resources:
+  - namespace.yaml
+  - configmap.yaml
+  - postgres.yaml
+  - qdrant.yaml
+  - doc-extraction.yaml
+  - translator.yaml
+  - converter.yaml
+  - pdf-editor.yaml
+  - calculator.yaml
+  - comparator.yaml
+  - chatbot.yaml
+  - rag-online.yaml

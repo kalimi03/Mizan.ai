@@ -1,0 +1,62 @@
+# Public routing for mizanai.org, via k3s's built-in Traefik ingress
+# controller. Every backend already uses its own globally-unique /api/...
+# path prefix (see each service's main.py) -- chatbot's /api/auth,
+# /api/feedback, /api/chat, /api/synthesis; calculator's /api/compliance;
+# translator's /api/translate; converter's /api/convert; rag-online's
+# /api/know-vat-zatca; pdf-editor's /api/pdf-editor; comparator's
+# /api/comparator -- so this can route by prefix straight to each
+# Service with no path rewriting. Anything not matching a known API
+# prefix falls through to the frontend (static HTML/CSS/JS via nginx).
+#
+# TLS: mizanai-origin-tls is a Cloudflare Origin CA cert -- only trusted
+# by Cloudflare itself, not a public CA. That's fine because Cloudflare's
+# proxy (SSL/TLS mode: Full (strict)) is what visitors actually see;
+# this only encrypts the Cloudflare-edge-to-origin hop.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: mizan-ingress
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+spec:
+  ingressClassName: traefik
+  tls:
+    - hosts: ["mizanai.org"]
+      secretName: mizanai-origin-tls
+  rules:
+    - host: mizanai.org
+      http:
+        paths:
+          - path: /api/auth
+            pathType: Prefix
+            backend: { service: { name: chatbot, port: { number: 8000 } } }
+          - path: /api/feedback
+            pathType: Prefix
+            backend: { service: { name: chatbot, port: { number: 8000 } } }
+          - path: /api/chat
+            pathType: Prefix
+            backend: { service: { name: chatbot, port: { number: 8000 } } }
+          - path: /api/synthesis
+            pathType: Prefix
+            backend: { service: { name: chatbot, port: { number: 8000 } } }
+          - path: /api/compliance
+            pathType: Prefix
+            backend: { service: { name: calculator, port: { number: 8002 } } }
+          - path: /api/translate
+            pathType: Prefix
+            backend: { service: { name: translator, port: { number: 8003 } } }
+          - path: /api/convert
+            pathType: Prefix
+            backend: { service: { name: converter, port: { number: 8004 } } }
+          - path: /api/know-vat-zatca
+            pathType: Prefix
+            backend: { service: { name: rag-online, port: { number: 8005 } } }
+          - path: /api/pdf-editor
+            pathType: Prefix
+            backend: { service: { name: pdf-editor, port: { number: 8006 } } }
+          - path: /api/comparator
+            pathType: Prefix
+            backend: { service: { name: comparator, port: { number: 8007 } } }
+          - path: /
+            pathType: Prefix
+            backend: { service: { name: frontend, port: { number: 80 } } }
