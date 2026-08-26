@@ -3,6 +3,18 @@
 <head>
 <meta charset="utf-8">
 <title>Mizan.ai</title>
+
+<meta property="og:title" content="Mizan.ai — VAT & ZATCA Compliance, Simplified">
+<meta property="og:description" content="AI-powered Arabic-first platform for Saudi SMEs — VAT compliance, ZATCA guidance, document reconciliation, and more.">
+<meta property="og:image" content="https://mizanai.org/assets/mizan-og-image.png">
+<meta property="og:url" content="https://mizanai.org">
+<meta property="og:type" content="website">
+
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Mizan.ai — VAT & ZATCA Compliance, Simplified">
+<meta name="twitter:description" content="AI-powered Arabic-first platform for Saudi SMEs.">
+<meta name="twitter:image" content="https://mizanai.org/assets/mizan-og-image.png">
+
 <link rel="stylesheet" href="style.css">
 <script src="config.js"></script>
 <script src="common.js"></script>
@@ -24,7 +36,7 @@
     <a href="about.html">About</a>
     <a href="documentation.html">Documentation</a>
     <a href="contact.html">Contact us</a>
-    <a href="#" onclick="mzLogout(); return false;">Log out</a>
+    <span id="auth-nav-link"></span>
   </div>
 </div>
 <div class="mz-shell">
@@ -56,7 +68,18 @@
   </div>
 </div>
 <script>
-mzRequireAuth();
+// No mzRequireAuth() here on purpose — the homepage (including the chat
+// below) is open to anonymous visitors; only the feature cards above
+// require login, and each of their own pages already calls
+// mzRequireAuth() itself. mzFetch() still attaches a token if one exists,
+// so a logged-in visitor's chat is personalized; a guest's isn't.
+const authLink = document.getElementById("auth-nav-link");
+if (mzGetToken()) {
+  authLink.innerHTML = '<a href="#" id="logout-link">Log out</a>';
+  document.getElementById("logout-link").addEventListener("click", (e) => { e.preventDefault(); mzLogout(); });
+} else {
+  authLink.innerHTML = '<a href="login.html">Log in</a> <a href="register.html">Register</a>';
+}
 
 // Ties every message in this browser tab to one conversation thread on the
 // backend (LangGraph's thread_id) — the server mints this on the first

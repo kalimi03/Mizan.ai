@@ -36,7 +36,13 @@ from features.chatbot.memory import (
     set_temp_password,
     verify_password,
 )
-from app.auth import create_jwt, generate_temp_password, get_current_user_id, get_current_user_id_full_access
+from app.auth import (
+    create_jwt,
+    generate_temp_password,
+    get_current_user_id,
+    get_current_user_id_full_access,
+    get_current_user_id_optional,
+)
 from app.email import send_email
 
 logging.basicConfig(level=logging.INFO)
@@ -291,9 +297,13 @@ class ChatResponse(BaseModel):
 
 
 @app.post("/api/chat", response_model=ChatResponse, tags=["D — chat"])
-def chat(req: ChatRequest, user_id: str = Depends(get_current_user_id_full_access)):
-    """General-purpose chat for the homepage assistant. Requires a valid JWT
-    (Authorization: Bearer <token>) from /api/auth/login or /api/auth/register.
+def chat(req: ChatRequest, user_id: Optional[str] = Depends(get_current_user_id_optional)):
+    """General-purpose chat for the homepage assistant. Usable by anonymous
+    visitors — an Authorization: Bearer <token> from /api/auth/login or
+    /api/auth/register is optional, not required; if present (and fully
+    usable — see get_current_user_id_optional), replies get the
+    user_id-keyed profile-memory personalization, otherwise the guest just
+    gets a stateless reply for this conversation only.
 
     session_id identifies one conversation thread (LangGraph's thread_id) and
     is independent of the caller's account: it's temporary and per-conversation,

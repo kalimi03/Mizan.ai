@@ -1,0 +1,89 @@
+# know_vat_zatca_sqlite: docker-compose.yml shared this volume with a
+# long-running Qdrant container and the offline ingestion pipeline started
+# OUTSIDE compose -- a real docker volume, external to the compose project.
+# That external-sharing arrangement is docker-specific and doesn't carry
+# over to this cluster as-is; this PVC is a fresh, cluster-local volume.
+# Getting the offline ingestion pipeline's data into it is a separate,
+# not-yet-solved follow-up -- not blocking getting rag-online itself running.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: rag-online-sqlite
+spec:
+  accessModes: ["ReadWriteOnce"]
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rag-online
+  labels: { app: rag-online }
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: rag-online }
+  template:
+    metadata:
+      labels: { app: rag-online }
+    spec:
+      imagePullSecrets:
+        - name: gcr-json-key
+      containers:
+        - name: rag-online
+          image: mizanai-rag-online:latest
+          imagePullPolicy: IfNotPresent
+          ports: [{ containerPort: 8005 }]
+          env:
+            - name: DB_HOST
+              valueFrom: { configMapKeyRef: { name: mizan-config, key: DB_HOST } }
+            - name: DB_PORT
+              valueFrom: { configMapKeyRef: { name: mizan-config, key: DB_PORT } }
+            - name: DB_NAME
+              valueFrom: { configMapKeyRef: { name: mizan-config, key: DB_NAME } }
+            - name: DB_USER
+              valueFrom: { configMapKeyRef: { name: mizan-config, key: DB_USER } }
+            - name: LANGCHAIN_TRACING_V2
+              valueFrom: { configMapKeyRef: { name: mizan-config, key: LANGCHAIN_TRACING_V2 } }
+            - name: LANGCHAIN_PROJECT
+              valueFrom: { configMapKeyRef: { name: mizan-config, key: LANGCHAIN_PROJECT } }
+            - name: DB_PASSWORD
+              valueFrom: { secretKeyRef: { name: mizan-secrets, key: DB_PASSWORD } }
+            - name: MIZAN_EMBEDDER_URL
+              valueFrom: { secretKeyRef: { name: mizan-secrets, key: MIZAN_EMBEDDER_URL } }
+            - name: MIZAN_QWEN_LITE_URL
+              valueFrom: { secretKeyRef: { name: mizan-secrets, key: MIZAN_QWEN_LITE_URL } }
+            - name: JWT_SECRET
+              valueFrom: { secretKeyRef: { name: mizan-secrets, key: JWT_SECRET } }
+            - name: LANGCHAIN_API_KEY
+              valueFrom: { secretKeyRef: { name: mizan-secrets, key: LANGCHAIN_API_KEY } }
+            - name: QDRANT_URL
+              value: "http://mizan-qdrant:6333"
+            - name: KNOW_VAT_ZATCA_SQLITE_PATH
+              value: "/data/know_vat_n_zatca.db"
+          volumeMounts:
+            - { name: sqlite-data, mountPath: /data }
+          resources:
+            requests: { cpu: "50m", memory: "128Mi" }
+            limits: { cpu: "300m", memory: "400Mi" }
+          readinessProbe:
+            tcpSocket: { port: 8005 }
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          livenessProbe:
+            tcpSocket: { port: 8005 }
+            initialDelaySeconds: 15
+            periodSeconds: 10
+      volumes:
+        - name: sqlite-data
+          persistentVolumeClaim: { claimName: rag-online-sqlite }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: rag-online
+spec:
+  selector: { app: rag-online }
+  ports:
+    - { port: 8005, targetPort: 8005 }

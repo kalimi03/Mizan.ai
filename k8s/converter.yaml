@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: converter
+  labels: { app: converter }
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: converter }
+  template:
+    metadata:
+      labels: { app: converter }
+    spec:
+      imagePullSecrets:
+        - name: gcr-json-key
+      containers:
+        - name: converter
+          image: mizanai-converter:latest
+          imagePullPolicy: IfNotPresent
+          ports: [{ containerPort: 8004 }]
+          env:
+            - name: JWT_SECRET
+              valueFrom: { secretKeyRef: { name: mizan-secrets, key: JWT_SECRET } }
+          # Spawns real LibreOffice subprocesses per conversion -- heavier
+          # bursts than the other thin FastAPI services.
+          resources:
+            requests: { cpu: "100m", memory: "256Mi" }
+            limits: { cpu: "500m", memory: "1Gi" }
+          readinessProbe:
+            tcpSocket: { port: 8004 }
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          livenessProbe:
+            tcpSocket: { port: 8004 }
+            initialDelaySeconds: 15
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: converter
+spec:
+  selector: { app: converter }
+  ports:
+    - { port: 8004, targetPort: 8004 }

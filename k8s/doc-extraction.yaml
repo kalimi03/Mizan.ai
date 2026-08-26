@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: doc-extraction
+  labels: { app: doc-extraction }
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: doc-extraction }
+  template:
+    metadata:
+      labels: { app: doc-extraction }
+    spec:
+      imagePullSecrets:
+        - name: gcr-json-key
+      containers:
+        - name: doc-extraction
+          image: mizanai-doc-extraction:latest
+          imagePullPolicy: IfNotPresent
+          ports: [{ containerPort: 8001 }]
+          # Heaviest service on CPU/memory -- Docling + torch, even CPU-only.
+          resources:
+            requests: { cpu: "250m", memory: "512Mi" }
+            limits: { cpu: "1000m", memory: "1536Mi" }
+          readinessProbe:
+            tcpSocket: { port: 8001 }
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          livenessProbe:
+            tcpSocket: { port: 8001 }
+            initialDelaySeconds: 15
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: doc-extraction
+spec:
+  selector: { app: doc-extraction }
+  ports:
+    - { port: 8001, targetPort: 8001 }

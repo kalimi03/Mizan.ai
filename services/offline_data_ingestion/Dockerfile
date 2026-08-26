@@ -40,8 +40,12 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 # headlessly -- a plain python3/python3-pip base is missing all of them,
 # which surfaces as "ImportError: libxcb.so.1: cannot open shared object
 # file" (or libGL.so.1, etc.) the first time a PDF is actually converted.
+# build-essential: RapidOCR's torch backend JIT-compiles a Triton kernel at
+# first use (even for a GPU-only run) -- without a real C compiler, this
+# fails at runtime with "Failed to find C compiler", not at build time, so
+# it silently doesn't show up until the first document is actually processed.
 RUN apt-get update && apt-get install -y --no-install-recommends \
-        python3 python3-pip \
+        python3 python3-pip build-essential \
         libgl1 libglib2.0-0 libsm6 libxext6 libxrender1 libxcb1 \
     && rm -rf /var/lib/apt/lists/* \
     && ln -sf /usr/bin/python3 /usr/bin/python
